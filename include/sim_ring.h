@@ -6,15 +6,15 @@
 //#define ENABLE_SECOND_GENERATOR // Use second generator only (for testing)  
 #define ENABLE_DUAL_GENERATOR   // Use both generators for dual-tone (target behavior)
 
-#include "async_pager.h"
+#include "async_telco.h"
 #include "sim_transmitter.h"
 
 class SignalMeter; // Forward declaration
 
-// Ring tone frequency range (Hz offset from VFO) - DTMF-like range for pleasant listening
-#define RING_TONE_MIN_OFFSET 650.0    // Minimum tone frequency offset (DTMF-like range)
-#define RING_TONE_MAX_OFFSET 1650.0   // Maximum tone frequency offset (DTMF-like range)
-#define RING_TONE_MIN_SEPARATION 100.0 // Minimum separation between tones (suitable for DTMF-like range)
+// Ring tone frequency range (Hz offset from VFO) - North American telephone ring
+#define RING_TONE_LOW_OFFSET 440.0     // First ring tone (440 Hz)
+#define RING_TONE_HIGH_OFFSET 480.0    // Second ring tone (480 Hz) 
+#define RING_TONE_MIN_SEPARATION 40.0  // Separation between 440 and 480 Hz tones
 
 class SimRing : public SimTransmitter
 {
@@ -38,7 +38,7 @@ public:
     void debug_test_dual_generator_acquisition();
 
 private:
-    AsyncPager _pager;
+    AsyncTelco _telco;
     float _current_tone_a_offset;
     float _current_tone_b_offset;
     SignalMeter *_signal_meter;     // Pointer to signal meter for charge pulses

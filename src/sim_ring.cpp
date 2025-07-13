@@ -13,7 +13,7 @@ SimRing::SimRing(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fi
 
     // Generate initial tone pair
     generate_new_tone_pair();
-    // Pager transmission will be started in begin() method
+    // ring transmission will be started in begin() method
 }
 
 bool SimRing::begin(unsigned long time)
@@ -23,8 +23,8 @@ bool SimRing::begin(unsigned long time)
     if(!common_begin(time, _fixed_freq))
         return false;
         
-    // Start pager transmission with repeat enabled
-    _pager.start_pager_transmission(true);
+    // Start ring transmission with repeat enabled
+    _telco.start_telco_transmission(true);
 
     // Check if we have a valid realizer before accessing it
     if(_realizer == -1) {
@@ -44,8 +44,8 @@ bool SimRing::begin(unsigned long time)
         return false;  // No second generator available
     }
     
-    // Start pager transmission with repeat enabled
-    _pager.start_pager_transmission(true);
+    // Start ring transmission with repeat enabled
+    _telco.start_telco_transmission(true);
 
     WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer_b);
 
@@ -77,8 +77,8 @@ bool SimRing::begin(unsigned long time)
     Serial.print("Second generator realizer: ");
     Serial.println(_realizer_b);
     
-    // Start pager transmission with repeat enabled
-    _pager.start_pager_transmission(true);
+    // Start ring transmission with repeat enabled
+    _telco.start_telco_transmission(true);
 
     // Initialize both generators to silent
     WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
@@ -92,7 +92,6 @@ bool SimRing::begin(unsigned long time)
     wavegen_b->set_frequency(SILENT_FREQ, false);
     wavegen_b->set_frequency(SILENT_FREQ, true);
 #endif
-    
 
     return true;
 }
@@ -113,15 +112,15 @@ void SimRing::realize()
     WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
     
     if(_active) {
-        // Set frequencies based on current pager state
-        switch(_pager.get_current_state()) {
-            case PAGER_STATE_TONE_A:
+        // Set frequencies based on current ring state
+        switch(_telco.get_current_state()) {
+            case TELCO_STATE_TONE_A:
                 // Transmit Tone A (longer unsquelch tone)
                 wavegen->set_frequency(_frequency + _current_tone_a_offset, true);
                 wavegen->set_frequency(_frequency + _current_tone_a_offset, false);
                 break;
                 
-            case PAGER_STATE_TONE_B:
+            case TELCO_STATE_TONE_B:
                 // Transmit Tone B (shorter identification tone)
                 wavegen->set_frequency(_frequency + _current_tone_b_offset, true);
                 wavegen->set_frequency(_frequency + _current_tone_b_offset, false);
@@ -150,15 +149,15 @@ void SimRing::realize()
     WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer_b);
     
     if(_active) {
-        // Set frequencies based on current pager state - using second generator tone offsets
-        switch(_pager.get_current_state()) {
-            case PAGER_STATE_TONE_A:
+        // Set frequencies based on current ring state - using second generator tone offsets
+        switch(_telco.get_current_state()) {
+            case TELCO_STATE_TONE_A:
                 // Transmit Tone A (longer unsquelch tone) - second generator frequencies
                 wavegen_b->set_frequency(_frequency + _current_tone_a_offset_b, true);
                 wavegen_b->set_frequency(_frequency + _current_tone_a_offset_b, false);
                 break;
                 
-            case PAGER_STATE_TONE_B:
+            case TELCO_STATE_TONE_B:
                 // Transmit Tone B (shorter identification tone) - second generator frequencies
                 wavegen_b->set_frequency(_frequency + _current_tone_b_offset_b, true);
                 wavegen_b->set_frequency(_frequency + _current_tone_b_offset_b, false);
@@ -189,9 +188,9 @@ void SimRing::realize()
     WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer_b);
     
     if(_active) {
-        // Set frequencies for BOTH generators based on current pager state
-        switch(_pager.get_current_state()) {
-            case PAGER_STATE_TONE_A:
+        // Set frequencies for BOTH generators based on current ring state
+        switch(_telco.get_current_state()) {
+            case TELCO_STATE_TONE_A:
                 // FIRST GENERATOR: Transmit Tone A
                 wavegen->set_frequency(_frequency + _current_tone_a_offset, true);
                 wavegen->set_frequency(_frequency + _current_tone_a_offset, false);
@@ -201,7 +200,7 @@ void SimRing::realize()
                 wavegen_b->set_frequency(_frequency + _current_tone_a_offset_b, false);
                 break;
                 
-            case PAGER_STATE_TONE_B:
+            case TELCO_STATE_TONE_B:
                 // FIRST GENERATOR: Transmit Tone B
                 wavegen->set_frequency(_frequency + _current_tone_b_offset, true);
                 wavegen->set_frequency(_frequency + _current_tone_b_offset, false);
@@ -237,7 +236,7 @@ bool SimRing::update(Mode *mode)
 
     if(_enabled) {
         // Note: We don't set frequencies here like RTTY does
-        // Pager frequencies are set in realize() based on current tone
+        // ring frequencies are set in realize() based on current tone
     }
 
     realize();
@@ -246,9 +245,9 @@ bool SimRing::update(Mode *mode)
 
 bool SimRing::step(unsigned long time)
 {
-    switch(_pager.step_pager(time)) {        case STEP_PAGER_TURN_ON:
+    switch(_telco.step_telco(time)) {        case STEP_TELCO_TURN_ON:
             // Check if this is the start of a new page cycle (silence → tone A)
-            if (_pager.get_current_state() == PAGER_STATE_TONE_A) {
+            if (_telco.get_current_state() == TELCO_STATE_TONE_A) {
                 generate_new_tone_pair();
                 
 #ifdef ENABLE_FIRST_GENERATOR
@@ -314,12 +313,12 @@ bool SimRing::step(unsigned long time)
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
             break;
 
-        case STEP_PAGER_LEAVE_ON:
+        case STEP_TELCO_LEAVE_ON:
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
             break;
 
-        case STEP_PAGER_TURN_OFF:
+        case STEP_TELCO_TURN_OFF:
             _active = false;
             realize();
             
@@ -362,7 +361,7 @@ bool SimRing::step(unsigned long time)
             
             // No charge pulse when carrier turns off
             break;
-              case STEP_PAGER_CHANGE_FREQ:
+              case STEP_TELCO_CHANGE_FREQ:
             // Transmitter stays on, but frequency needs to change
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse on frequency change while on
@@ -377,52 +376,18 @@ bool SimRing::step(unsigned long time)
 
 void SimRing::generate_new_tone_pair()
 {
-    // Generate random tone pair similar to DTMF frequencies
-    // Range: 650-1650 Hz offset, minimum 200 Hz separation
+    // Fixed North American telephone ring frequencies
+    // Tone A: 440 Hz (primary ring tone)
+    // Tone B: Disabled for simple ring cadence
     
-    float frequency_range = RING_TONE_MAX_OFFSET - RING_TONE_MIN_OFFSET;
-    
-    // Arduino random() function
-    _current_tone_a_offset = RING_TONE_MIN_OFFSET + 
-        random((long)(frequency_range - RING_TONE_MIN_SEPARATION));
-    
-    // Generate second tone with minimum separation
-    float remaining_range = frequency_range - RING_TONE_MIN_SEPARATION;
-    float tone_b_base = random((long)remaining_range);
-    
-    // Ensure minimum separation
-    if (tone_b_base < _current_tone_a_offset - RING_TONE_MIN_OFFSET) {
-        _current_tone_b_offset = RING_TONE_MIN_OFFSET + tone_b_base;
-    } else {
-        _current_tone_b_offset = _current_tone_a_offset + RING_TONE_MIN_SEPARATION + 
-            (tone_b_base - (_current_tone_a_offset - RING_TONE_MIN_OFFSET));
-    }
-
-    // Ensure tone B doesn't exceed maximum
-    if (_current_tone_b_offset > RING_TONE_MAX_OFFSET) {
-        _current_tone_b_offset = RING_TONE_MAX_OFFSET;
-    }
+    _current_tone_a_offset = RING_TONE_LOW_OFFSET;  // Fixed 440 Hz
+    _current_tone_b_offset = 0;  // Tone B disabled for telephone ring
 
 #if defined(ENABLE_SECOND_GENERATOR) || defined(ENABLE_DUAL_GENERATOR)
-    // Second generator gets its own completely separate tone pair (IMPORTANT: different frequencies)
-    _current_tone_a_offset_b = RING_TONE_MIN_OFFSET + 
-        random((long)(frequency_range - RING_TONE_MIN_SEPARATION));
-    
-    // Generate second tone for generator B with minimum separation
-    float tone_b_base_b = random((long)remaining_range);
-    
-    // Ensure minimum separation for generator B
-    if (tone_b_base_b < _current_tone_a_offset_b - RING_TONE_MIN_OFFSET) {
-        _current_tone_b_offset_b = RING_TONE_MIN_OFFSET + tone_b_base_b;
-    } else {
-        _current_tone_b_offset_b = _current_tone_a_offset_b + RING_TONE_MIN_SEPARATION + 
-            (tone_b_base_b - (_current_tone_a_offset_b - RING_TONE_MIN_OFFSET));
-    }
-
-    // Ensure tone B for generator B doesn't exceed maximum
-    if (_current_tone_b_offset_b > RING_TONE_MAX_OFFSET) {
-        _current_tone_b_offset_b = RING_TONE_MAX_OFFSET;
-    }
+    // Second generator uses 480 Hz for dual-tone ring (eventually)
+    // For now, just use the same 440 Hz
+    _current_tone_a_offset_b = RING_TONE_LOW_OFFSET;  // Also 440 Hz for now
+    _current_tone_b_offset_b = 0;  // Also disabled
 #endif
 }
 
