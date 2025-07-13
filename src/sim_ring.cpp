@@ -380,48 +380,48 @@ void SimRing::generate_new_tone_pair()
     // Generate random tone pair similar to DTMF frequencies
     // Range: 650-1650 Hz offset, minimum 200 Hz separation
     
-    float frequency_range = PAGER2_TONE_MAX_OFFSET - PAGER2_TONE_MIN_OFFSET;
+    float frequency_range = RING_TONE_MAX_OFFSET - RING_TONE_MIN_OFFSET;
     
     // Arduino random() function
-    _current_tone_a_offset = PAGER2_TONE_MIN_OFFSET + 
-        random((long)(frequency_range - PAGER2_TONE_MIN_SEPARATION));
+    _current_tone_a_offset = RING_TONE_MIN_OFFSET + 
+        random((long)(frequency_range - RING_TONE_MIN_SEPARATION));
     
     // Generate second tone with minimum separation
-    float remaining_range = frequency_range - PAGER2_TONE_MIN_SEPARATION;
+    float remaining_range = frequency_range - RING_TONE_MIN_SEPARATION;
     float tone_b_base = random((long)remaining_range);
     
     // Ensure minimum separation
-    if (tone_b_base < _current_tone_a_offset - PAGER2_TONE_MIN_OFFSET) {
-        _current_tone_b_offset = PAGER2_TONE_MIN_OFFSET + tone_b_base;
+    if (tone_b_base < _current_tone_a_offset - RING_TONE_MIN_OFFSET) {
+        _current_tone_b_offset = RING_TONE_MIN_OFFSET + tone_b_base;
     } else {
-        _current_tone_b_offset = _current_tone_a_offset + PAGER2_TONE_MIN_SEPARATION + 
-            (tone_b_base - (_current_tone_a_offset - PAGER2_TONE_MIN_OFFSET));
+        _current_tone_b_offset = _current_tone_a_offset + RING_TONE_MIN_SEPARATION + 
+            (tone_b_base - (_current_tone_a_offset - RING_TONE_MIN_OFFSET));
     }
 
     // Ensure tone B doesn't exceed maximum
-    if (_current_tone_b_offset > PAGER2_TONE_MAX_OFFSET) {
-        _current_tone_b_offset = PAGER2_TONE_MAX_OFFSET;
+    if (_current_tone_b_offset > RING_TONE_MAX_OFFSET) {
+        _current_tone_b_offset = RING_TONE_MAX_OFFSET;
     }
 
 #if defined(ENABLE_SECOND_GENERATOR) || defined(ENABLE_DUAL_GENERATOR)
     // Second generator gets its own completely separate tone pair (IMPORTANT: different frequencies)
-    _current_tone_a_offset_b = PAGER2_TONE_MIN_OFFSET + 
-        random((long)(frequency_range - PAGER2_TONE_MIN_SEPARATION));
+    _current_tone_a_offset_b = RING_TONE_MIN_OFFSET + 
+        random((long)(frequency_range - RING_TONE_MIN_SEPARATION));
     
     // Generate second tone for generator B with minimum separation
     float tone_b_base_b = random((long)remaining_range);
     
     // Ensure minimum separation for generator B
-    if (tone_b_base_b < _current_tone_a_offset_b - PAGER2_TONE_MIN_OFFSET) {
-        _current_tone_b_offset_b = PAGER2_TONE_MIN_OFFSET + tone_b_base_b;
+    if (tone_b_base_b < _current_tone_a_offset_b - RING_TONE_MIN_OFFSET) {
+        _current_tone_b_offset_b = RING_TONE_MIN_OFFSET + tone_b_base_b;
     } else {
-        _current_tone_b_offset_b = _current_tone_a_offset_b + PAGER2_TONE_MIN_SEPARATION + 
-            (tone_b_base_b - (_current_tone_a_offset_b - PAGER2_TONE_MIN_OFFSET));
+        _current_tone_b_offset_b = _current_tone_a_offset_b + RING_TONE_MIN_SEPARATION + 
+            (tone_b_base_b - (_current_tone_a_offset_b - RING_TONE_MIN_OFFSET));
     }
 
     // Ensure tone B for generator B doesn't exceed maximum
-    if (_current_tone_b_offset_b > PAGER2_TONE_MAX_OFFSET) {
-        _current_tone_b_offset_b = PAGER2_TONE_MAX_OFFSET;
+    if (_current_tone_b_offset_b > RING_TONE_MAX_OFFSET) {
+        _current_tone_b_offset_b = RING_TONE_MAX_OFFSET;
     }
 #endif
 }

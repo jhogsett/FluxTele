@@ -11,10 +11,10 @@
 
 class SignalMeter; // Forward declaration
 
-// Pager tone frequency range (Hz offset from VFO) - DTMF-like range for pleasant listening
-#define PAGER2_TONE_MIN_OFFSET 650.0    // Minimum tone frequency offset (DTMF-like range)
-#define PAGER2_TONE_MAX_OFFSET 1650.0   // Maximum tone frequency offset (DTMF-like range)
-#define PAGER2_TONE_MIN_SEPARATION 100.0 // Minimum separation between tones (suitable for DTMF-like range)
+// Ring tone frequency range (Hz offset from VFO) - DTMF-like range for pleasant listening
+#define RING_TONE_MIN_OFFSET 650.0    // Minimum tone frequency offset (DTMF-like range)
+#define RING_TONE_MAX_OFFSET 1650.0   // Maximum tone frequency offset (DTMF-like range)
+#define RING_TONE_MIN_SEPARATION 100.0 // Minimum separation between tones (suitable for DTMF-like range)
 
 class SimRing : public SimTransmitter
 {

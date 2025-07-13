@@ -117,16 +117,16 @@
 
 // ===== LEGACY FLUXTUNE CONFIGURATIONS =====
 #ifdef CONFIG_MIXED_STATIONS
-    // Testing: CW + SimPager (original) + SimPager2 (dual) for direct comparison
+    // Testing: CW + SimRing (dual generator telephony baseline)
     #define ENABLE_MORSE_STATION    // Basic CW/Morse station (SimStation)
     // #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange) - NEW!
-    // #define ENABLE_RING_STATION     // Simple telephone ring simulator (SimRing) - NEW!
+    #define ENABLE_RING_STATION     // Simple telephone ring simulator (SimRing) - NEW! (replaces SimPager2)
     // #define ENABLE_NUMBERS_STATION  // Numbers Station (SimNumbers) - REMOVED for station spacing
     // #define ENABLE_PAGER_STATION    // Pager Station (SimPager) - TEMPORARILY DISABLED for SimPager2 testing
     // #define ENABLE_RTTY_STATION     // RTTY Station (SimRTTY) - REMOVED for station spacing
-    #define ENABLE_PAGER2_STATION   // SimPager2 (dual wave generator) - TESTING
-    // NOTE: To enable jammer, comment out PAGER2 and uncomment below:
-    // #define ENABLE_JAMMER_STATION   // Jammer Station (SimJammer) - replaces PAGER2
+    // #define ENABLE_PAGER2_STATION   // SimPager2 (dual wave generator) - REPLACED by SimRing
+    // NOTE: To enable jammer, comment out RING and uncomment below:
+    // #define ENABLE_JAMMER_STATION   // Jammer Station (SimJammer) - replaces RING
 #endif
 
 #ifdef CONFIG_DEV_LOW_RAM

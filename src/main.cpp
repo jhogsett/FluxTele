@@ -169,9 +169,6 @@ SimStation cw_station2(&wave_gen_pool, &signal_meter, 55505000.0, 18);   // 18 W
 #ifdef ENABLE_EXCHANGE_STATION
 SimExchange exchange_station1(&wave_gen_pool, &signal_meter, 55600400.0, EXCHANGE_DIAL_TONE);  // Will be randomized in setup
 #endif
-#ifdef ENABLE_RING_STATION
-SimRing ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // Simple ring simulator slightly offset from exchange
-#endif
 #ifdef ENABLE_NUMBERS_STATION
 SimNumbers numbers_station1(&wave_gen_pool, &signal_meter, 55500200, 18);
 #endif
@@ -185,14 +182,14 @@ SimJammer jammer_station1(&wave_gen_pool);
 SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 #endif
 
-#ifdef ENABLE_PAGER2_STATION
-SimPager2 pager2_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.51 MHz - proper 5 kHz spacing for pipelining
+#ifdef ENABLE_RING_STATION
+SimRing ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
 #endif
 
 // FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
 // All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
 Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual station count! ***
-                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimPager2)
+                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRing)
                               // Update array size when changing station configurations!
 
 #ifdef ENABLE_MORSE_STATION
@@ -216,9 +213,6 @@ Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual 
 #endif
 #ifdef ENABLE_PAGER_STATION
     &pager_station1
-#endif
-#ifdef ENABLE_PAGER2_STATION
-    &pager2_station1  // Testing dual wave generator instead of RTTY
 #endif
 };
 #endif
