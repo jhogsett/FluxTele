@@ -5,14 +5,14 @@
 // Choose ONE configuration mode by uncommenting it
 
 // ===== FLUXTELE TELEPHONY CONFIGURATIONS =====
-#define CONFIG_TELEPHONE_EXCHANGE  // Default: Multi-line telephone exchange with DTMF dialing
+// #define CONFIG_TELEPHONE_EXCHANGE  // Default: Multi-line telephone exchange with DTMF dialing (TODO: Implement)
 // #define CONFIG_DTMF_DIALER        // DTMF touch-tone dialing demonstration
 // #define CONFIG_RING_CADENCE       // Various telephone ringing patterns
 // #define CONFIG_BUSY_SIGNAL        // Standard telephone busy signals
 // #define CONFIG_MODEM_SOUNDS       // Dial-up modem handshake simulation
 
 // ===== LEGACY FLUXTUNE CONFIGURATIONS (for reference) =====  
-// #define CONFIG_MIXED_STATIONS    // FluxTune legacy: All different station types
+#define CONFIG_MIXED_STATIONS    // TEMPORARY: FluxTune config for initial build - has DTMF foundation!
 // #define CONFIG_DEV_LOW_RAM       // Development: Minimal RAM usage for development work
                                  // SAVES ~191 BYTES RAM: Disables RTTY and Pager stations
                                  // Use this for dynamic station pipelining development
