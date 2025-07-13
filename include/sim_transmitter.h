@@ -27,7 +27,12 @@ enum StationState {
 /**
  * Base class for simulated transmitters (CW/RTTY).
  * Provides common functionality and interface for station simulation.
- * 
+ *
+ * INHERITANCE CONTRACT: All concrete station classes MUST inherit from both:
+ * - SimTransmitter (for StationManager compatibility)  
+ * - Realization (for RealizationPool compatibility)
+ * This dual inheritance enables zero-copy array sharing between managers.
+ *
  * IMPORTANT: begin() and end() are designed to be idempotent and safe for repeated calls.
  * This supports dynamic station management where stations may be restarted with new
  * frequencies or reallocated to different wave generators. The pattern end() followed
@@ -61,6 +66,7 @@ protected:    // Common utility methods
     bool _enabled;      // True when frequency is in audible range
     float _frequency;   // Current frequency difference from VFO
     float _vfo_freq;    // Current VFO frequency (for signal meter charge calculation)
+    // NOTE: Required by StationManager when using shared Realization arrays
     bool _active;       // True when transmitter should be active
     
     // Dynamic station management state

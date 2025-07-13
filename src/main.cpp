@@ -175,31 +175,9 @@ SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 SimPager2 pager2_station1(&wave_gen_pool, &signal_meter, 5550000.0);  // Testing dual wave generator - moved well above other stations
 #endif
 
-SimTransmitter *station_pool[3] = {  // *** CRITICAL: Array size must match actual station count! ***
-                                  // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimPager2)
-                                  // Update array size when changing station configurations!
-#ifdef ENABLE_MORSE_STATION
-    &cw_station1,
-    &cw_station2,  // Restored: Second CW station
-#endif
-#ifdef ENABLE_NUMBERS_STATION
-    &numbers_station1,  // SHOULD BE DISABLED per station_config.h
-#endif
-#ifdef ENABLE_RTTY_STATION
-    // &rtty_station1,  // Replaced with SimPager2
-#endif
-#ifdef ENABLE_JAMMER_STATION
-    &jammer_station1,
-#endif
-#ifdef ENABLE_PAGER_STATION
-    &pager_station1
-#endif
-#ifdef ENABLE_PAGER2_STATION
-    &pager2_station1  // Testing dual wave generator
-#endif
-};
-
-Realization *realizations[3] = {  // *** CRITICAL: Array size must match station_pool[3] above! ***
+// FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
+// All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
+Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual station count! ***
                               // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimPager2)
                               // Update array size when changing station configurations!
 #ifdef ENABLE_MORSE_STATION
@@ -490,20 +468,9 @@ SimNumbers numbers_station1(&wave_gen_pool, &signal_meter, 7002700.0, 18);
 SimTest test_station(&wave_gen_pool, &signal_meter, 7005000.0, 10.0, 440.0, 560.0);  // 10 Hz toggle, 440 Hz and 560 Hz tones
 #endif
 
-SimTransmitter *station_pool[3] = {  // *** WARNING: CONFIG_DEV_LOW_RAM may have different station count! ***
-                                  // Verify actual station count matches array size [3]!
-#ifdef ENABLE_MORSE_STATION
-    &cw_station1,
-#endif
-#ifdef ENABLE_NUMBERS_STATION
-    &numbers_station1,
-#endif
-#ifdef ENABLE_TEST_STATION
-    &test_station
-#endif
-};
-
-Realization *realizations[3] = {  // *** WARNING: CONFIG_DEV_LOW_RAM array size must match station_pool[3] above! ***
+// FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
+// All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
+Realization *realizations[3] = {  // *** WARNING: CONFIG_DEV_LOW_RAM array size matches actual station count! ***
 #ifdef ENABLE_MORSE_STATION
     &cw_station1,
 #endif
@@ -527,17 +494,9 @@ SimStation cw_station3(&wave_gen_pool, &signal_meter, 7003500.0, 16, 80);   // W
 // SimStation cw_station4(&wave_gen_pool, &signal_meter, 7004500.0, 25, 25);   // DL4JKL: European, good operator but tired
 // SimStation cw_station5(&wave_gen_pool, &signal_meter, 7000500.0, 19, 60);   // VE5MNO: Canadian, rusty on CW but determined
 
-SimTransmitter *station_pool[3] = {  // *** WARNING: CONFIG_FILE_PILE_UP currently has 3 stations, but could have 5! ***
-                                  // Verify actual station count matches array size [3]!
-                                  // If enabling all 5 pile-up stations, change to [5]!
-    &cw_station1,
-    &cw_station2, 
-    &cw_station3
-    // &cw_station4,
-    // &cw_station5
-};
-
-Realization *realizations[3] = {  // *** WARNING: CONFIG_FILE_PILE_UP array size must match station_pool[3] above! ***
+// FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
+// All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
+Realization *realizations[3] = {  // *** WARNING: CONFIG_FILE_PILE_UP array size matches actual station count! ***
                               // If enabling all 5 pile-up stations, change to [5]!
     &cw_station1,
     &cw_station2,
@@ -646,22 +605,23 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 #endif
 
 // ============================================================================
-// STATION MANAGER - Initialize with configured station pool
+// STATION MANAGER - Initialize with shared realizations array (FluxTune optimization)
+// Memory savings: Eliminates duplicate station_pool[] array via inheritance casting
 // ============================================================================
-StationManager station_manager(station_pool);
+StationManager station_manager(realizations, 3);  // Use optimized constructor with shared array
 
-// DEBUG: Station count verification
+// DEBUG: Station count verification (updated for FluxTune shared array optimization)
 void debug_station_pool_state() {
-    Serial.println("=== STATION POOL DEBUG ===");
+    Serial.println("=== SHARED REALIZATIONS DEBUG ===");
     Serial.print("Array size (compile time): ");
-    Serial.println(sizeof(station_pool) / sizeof(station_pool[0]));
+    Serial.println(sizeof(realizations) / sizeof(realizations[0]));
     
     int actual_count = 0;
-    for(int i = 0; i < (sizeof(station_pool) / sizeof(station_pool[0])); i++) {
-        Serial.print("station_pool[");
+    for(int i = 0; i < (sizeof(realizations) / sizeof(realizations[0])); i++) {
+        Serial.print("realizations[");
         Serial.print(i);
         Serial.print("] = ");
-        if(station_pool[i] != nullptr) {
+        if(realizations[i] != nullptr) {
             Serial.println("VALID");
             actual_count++;
         } else {

@@ -2,6 +2,7 @@
 #define STATION_MANAGER_H
 
 #include "sim_transmitter.h"
+#include "realization.h"
 #include <stdint.h>
 
 // Dynamic MAX_STATIONS based on configuration
@@ -35,7 +36,17 @@
 
 class StationManager {
 public:
-    StationManager(SimTransmitter* station_ptrs[MAX_STATIONS]);
+    // Standard constructor: Direct array of SimTransmitter pointers
+    StationManager(SimTransmitter* station_ptrs[], int actual_station_count);
+    
+    // MEMORY OPTIMIZATION: Share RealizationPool array to eliminate duplicate station arrays
+    // REQUIREMENT: All array entries MUST be SimTransmitter-derived objects (checked at runtime)
+    // This constructor enables zero-copy sharing of the realizations array between:
+    // - RealizationPool (uses as Realization* array)
+    // - StationManager (casts to SimTransmitter* array)
+    // Memory savings: Eliminates one pointer array per configuration (8-168 bytes depending on station count)
+    StationManager(Realization* shared_stations[], int actual_station_count);
+    
     void updateStations(uint32_t vfo_freq);
     void allocateAD9833();
     void recycleDormantStations(uint32_t vfo_freq);
@@ -55,6 +66,7 @@ public:
     
 private:
     SimTransmitter* stations[MAX_STATIONS];
+    int actual_station_count;  // Number of stations actually configured
     int ad9833_assignment[MAX_AD9833]; // Maps AD9833 channels to station indices
     
     // Dynamic pipelining state
