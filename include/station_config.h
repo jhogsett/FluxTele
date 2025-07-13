@@ -11,14 +11,14 @@
 // #define CONFIG_BUSY_SIGNAL        // Standard telephone busy signals
 // #define CONFIG_MODEM_SOUNDS       // Dial-up modem handshake simulation
 
-// ===== LEGACY FLUXTUNE CONFIGURATIONS (for reference) =====  
-#define CONFIG_MIXED_STATIONS    // TEMPORARY: FluxTune config for initial build - has DTMF foundation!
+// ===== FLUXTELE PRIMARY CONFIGURATION =====  
+// #define CONFIG_MIXED_STATIONS    // Primary FluxTele config: SimExchange + CW stations for telephony testing
 // #define CONFIG_DEV_LOW_RAM       // Development: Minimal RAM usage for development work
                                  // SAVES ~191 BYTES RAM: Disables RTTY and Pager stations
                                  // Use this for dynamic station pipelining development
 
 // ===== FLUXTUNE DEMONSTRATION CONFIGURATION =====
-// #define CONFIG_MIXED_STATIONS    // Uncomment to restore FluxTune functionality for comparison
+#define CONFIG_MIXED_STATIONS    // Uncomment to restore FluxTune functionality for comparison
 
 // ===== TEST CONFIGURATIONS =====
 // #define CONFIG_FOUR_CW          // Four CW/Morse stations for CW testing
@@ -77,6 +77,7 @@
 // ===============================================================================
 #ifdef CONFIG_TELEPHONE_EXCHANGE
     // FluxTele: Multi-line telephone exchange simulation
+    #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange)
     #define ENABLE_DTMF_STATION     // DTMF dialing station (dual-tone)
     #define ENABLE_RING_STATION     // Ring cadence station  
     #define ENABLE_BUSY_STATION     // Busy signal station
@@ -85,12 +86,14 @@
 
 #ifdef CONFIG_DTMF_DIALER
     // FluxTele: DTMF touch-tone dialing demonstration
+    #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange)
     #define ENABLE_DTMF_STATION     // DTMF dialing station (dual-tone)
     #define ENABLE_DTMF_MULTI_STATION // Multiple DTMF digits simultaneously
 #endif
 
 #ifdef CONFIG_RING_CADENCE
     // FluxTele: Various telephone ringing patterns
+    #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange)
     #define ENABLE_RING_STATION     // Standard ring cadence
     #define ENABLE_RING_UK_STATION  // UK ring cadence
     #define ENABLE_RING_OLD_STATION // Old mechanical bell ring
@@ -98,6 +101,7 @@
 
 #ifdef CONFIG_BUSY_SIGNAL
     // FluxTele: Standard telephone busy signals
+    #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange)
     #define ENABLE_BUSY_STATION     // Standard busy signal
     #define ENABLE_REORDER_STATION  // Reorder tone (all circuits busy)
     #define ENABLE_FAST_BUSY_STATION // Fast busy signal
@@ -105,6 +109,7 @@
 
 #ifdef CONFIG_MODEM_SOUNDS
     // FluxTele: Dial-up modem handshake simulation
+    #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange)
     #define ENABLE_MODEM_DIAL_STATION    // Modem dialing sequence
     #define ENABLE_MODEM_HANDSHAKE_STATION // Modem negotiation sounds
     #define ENABLE_MODEM_CARRIER_STATION   // Modem carrier tones
@@ -114,9 +119,11 @@
 #ifdef CONFIG_MIXED_STATIONS
     // Testing: CW + SimPager (original) + SimPager2 (dual) for direct comparison
     #define ENABLE_MORSE_STATION    // Basic CW/Morse station (SimStation)
-    // #define ENABLE_NUMBERS_STATION  // Numbers Station (SimNumbers) - REMOVED
+    // #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange) - NEW!
+    // #define ENABLE_RING_STATION     // Simple telephone ring simulator (SimRing) - NEW!
+    // #define ENABLE_NUMBERS_STATION  // Numbers Station (SimNumbers) - REMOVED for station spacing
     // #define ENABLE_PAGER_STATION    // Pager Station (SimPager) - TEMPORARILY DISABLED for SimPager2 testing
-    // #define ENABLE_RTTY_STATION     // RTTY Station (SimRTTY) - REPLACED with SimPager2
+    // #define ENABLE_RTTY_STATION     // RTTY Station (SimRTTY) - REMOVED for station spacing
     #define ENABLE_PAGER2_STATION   // SimPager2 (dual wave generator) - TESTING
     // NOTE: To enable jammer, comment out PAGER2 and uncomment below:
     // #define ENABLE_JAMMER_STATION   // Jammer Station (SimJammer) - replaces PAGER2
@@ -178,9 +185,9 @@
 #endif
 
 #ifdef CONFIG_PAGER2_TEST
-    // Test: Single original pager station to isolate CONFIG_PAGER2_TEST vs SimPager2 issue
-    #define ENABLE_PAGER_STATION
-    // Other stations disabled for focused pager testing
+    // Test: Single SimPager2 station to test dual wave generator functionality
+    #define ENABLE_PAGER2_STATION
+    // Other stations disabled for focused dual-generator testing
 #endif
 
 #ifdef CONFIG_FOUR_RTTY
