@@ -155,8 +155,8 @@ SignalMeter signal_meter;
 #ifdef CONFIG_MIXED_STATIONS
 // Testing: CW + CW + SimPager2 (dual wave generator) to maintain 3 stations for stability
 #ifdef ENABLE_MORSE_STATION
-SimStation cw_station1(&wave_gen_pool, &signal_meter, 7007000.0, 8);   // SLOW: 8 WPM to hold generators longer
-SimStation cw_station2(&wave_gen_pool, &signal_meter, 7008000.0, 8);   // SLOW: 8 WPM to hold generators longer
+SimStation cw_station1(&wave_gen_pool, &signal_meter, 5550010.0, 8);   // SLOW: 8 WPM to hold generators longer
+SimStation cw_station2(&wave_gen_pool, &signal_meter, 5550020.0, 8);   // SLOW: 8 WPM to hold generators longer
 #endif
 #ifdef ENABLE_NUMBERS_STATION
 SimNumbers numbers_station1(&wave_gen_pool, &signal_meter, 7002700.0, 18);
@@ -172,7 +172,7 @@ SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 #endif
 
 #ifdef ENABLE_PAGER2_STATION
-SimPager2 pager2_station1(&wave_gen_pool, &signal_meter, 7000000.0);  // Testing dual wave generator - moved well above other stations
+SimPager2 pager2_station1(&wave_gen_pool, &signal_meter, 5550000.0);  // Testing dual wave generator - moved well above other stations
 #endif
 
 SimTransmitter *station_pool[3] = {  // *** CRITICAL: Array size must match actual station count! ***
@@ -673,9 +673,9 @@ void debug_station_pool_state() {
     Serial.println("=== END STATION DEBUG ===");
 }
 
-VFO vfoa("VFO A",   7000000.0, 10, &realization_pool);
-VFO vfob("VFO B",  14000000.0, 10, &realization_pool);
-VFO vfoc("VFO C", 146520000.0, 5000, &realization_pool);
+VFO vfoa("EXC A",   5550000.0, 1, &realization_pool);
+VFO vfob("EXC B",   9990000.0, 1, &realization_pool);
+VFO vfoc("EXC C",2015550000.0, 1, &realization_pool);
 
 Contrast contrast("Contrast");
 BFO bfo("Offset");
@@ -828,7 +828,7 @@ EventDispatcher * set_application(int application, HT16K33Disp *display){
 		case APP_SIMRADIO:
 			dispatcher = &dispatcher1;
 			current_dispatcher = APP_SIMRADIO;
-			title = (FSTR("SimRadio"));
+			title = (FSTR("SimTelco"));
 		break;
 
 		case APP_SETTINGS:
@@ -877,7 +877,7 @@ void purge_events(){
 
 void loop()
 {
-    display.scroll_string(FSTR("FLuXTuNE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
+    display.scroll_string(FSTR("FLuXTeLE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
 
 #ifdef ENABLE_BRANDING_MODE
     // BRANDING MODE EASTER EGG - Check if encoder A button is pressed during startup
