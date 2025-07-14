@@ -35,6 +35,10 @@
 #include "sim_station.h"
 #endif
 
+#ifdef ENABLE_SIMSTATION2_TEST
+#include "sim_station2.h"
+#endif
+
 #ifdef ENABLE_EXCHANGE_STATION
 #include "sim_exchange.h"
 #endif
@@ -471,6 +475,19 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 };
 #endif
 
+#ifdef CONFIG_SIMSTATION2_TEST
+// TEST: Single SimStation2 station for testing duplicate class functionality
+SimStation2 cw_station2_test(&wave_gen_pool, &signal_meter, 55500000.0, 15);  // 15 WPM at 55.5 MHz
+
+SimTransmitter2 *station_pool[1] = {  // Only 1 entry for test config - NOTE: SimTransmitter2* not SimTransmitter*
+    &cw_station2_test
+};
+
+Realization *realizations[1] = {  // Only 1 entry for test config
+    &cw_station2_test
+};
+#endif
+
 #ifdef CONFIG_DEV_LOW_RAM
 // DEVELOPMENT: Low RAM configuration - only essential stations for development
 #ifdef ENABLE_MORSE_STATION
@@ -581,6 +598,8 @@ Realization *realizations[1] = {
 // Realization status array - sized based on configuration
 #ifdef CONFIG_MINIMAL_CW
 bool realization_stats[1] = {false};
+#elif defined(CONFIG_SIMSTATION2_TEST)
+bool realization_stats[1] = {false};  // Single SimStation2 test station
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -600,6 +619,8 @@ bool realization_stats[4] = {false, false, false, false};
 #endif
 
 #ifdef CONFIG_MINIMAL_CW
+RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_SIMSTATION2_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
@@ -625,6 +646,8 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 // ============================================================================
 
 #ifdef CONFIG_MINIMAL_CW
+StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
+#elif defined(CONFIG_SIMSTATION2_TEST)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array

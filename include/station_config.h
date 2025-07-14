@@ -18,7 +18,7 @@
                                  // Use this for dynamic station pipelining development
 
 // ===== FLUXTUNE DEMONSTRATION CONFIGURATION =====
-#define CONFIG_MIXED_STATIONS    // Uncomment to restore FluxTune functionality for comparison
+// #define CONFIG_MIXED_STATIONS    // Uncomment to restore FluxTune functionality for comparison
 
 // ===== TEST CONFIGURATIONS =====
 // #define CONFIG_FOUR_CW          // Four CW/Morse stations for CW testing
@@ -32,6 +32,7 @@
 // #define CONFIG_FOUR_JAMMER      // Four Jammer stations for interference testing
 // #define CONFIG_PAGER2_TEST      // Single dual-tone pager station for testing dual wave generators
 // #define CONFIG_MINIMAL_CW       // Single CW station (minimal memory) - CONFIRMED: Single station causes restarts
+#define CONFIG_SIMSTATION2_TEST // Single SimStation2 station for testing duplicate class functionality
 
 // ===== LISTENING PLEASURE CONFIGURATION =====
 // #define CONFIG_CW_CLUSTER       // Four CW stations clustered in 40m for listening pleasure
@@ -215,6 +216,12 @@
     #define ENABLE_CW_CLUSTER_STATIONS
     #define ENABLE_MORSE_STATION
     // Other stations disabled for focused CW listening
+#endif
+
+#ifdef CONFIG_SIMSTATION2_TEST
+    // Test: Single SimStation2 station for testing duplicate class functionality
+    #define ENABLE_SIMSTATION2_TEST
+    // All other stations disabled for focused testing
 #endif
 
 #ifdef CONFIG_TEST_PERFORMANCE
