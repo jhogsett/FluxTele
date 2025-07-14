@@ -16,11 +16,32 @@ enum StationState {
 
 // Common constants for simulated transmitters
 #define MAX_AUDIBLE_FREQ 5000.0
-#define MIN_AUDIBLE_FREQ 0.0
+#define MIN_AUDIBLE_FREQ -700.0   // FluxTele: No BFO required for telephony, allows full radio tuning range
 #define SILENT_FREQ 0.1
 
+/*
+ * FLUXTELE FREQUENCY ARCHITECTURE EXPLANATION:
+ * 
+ * Traditional radio receivers use heterodyning: RF signal + Local Oscillator = Audio IF
+ * This requires BFO (Beat Frequency Oscillator) to shift audio into audible range.
+ * MIN_AUDIBLE_FREQ was originally 150Hz assuming BFO would always add frequency.
+ * 
+ * FluxTele telephony operates differently:
+ * - Telephone signals are already at baseband audio frequencies (350-1633 Hz)
+ * - No heterodyning required - direct audio synthesis via AD9833
+ * - BFO is optional for user tuning comfort, not architecturally required
+ * 
+ * Setting MIN_AUDIBLE_FREQ = -700Hz allows:
+ * - Full radio dial behavior (tune signals completely out of audible range)
+ * - BFO = 0Hz operation (pure telephony frequencies with no offset)
+ * - Natural sub-audible tuning (like a real radio receiver)
+ * 
+ * This is the correct implementation, not a workaround.
+ */
+
 // BFO (Beat Frequency Oscillator) offset for comfortable audio tuning
-// This shifts the audio frequency without affecting signal meter calculations
+// FluxTele telephony operates directly at baseband frequencies (no heterodyning needed)
+// BFO offset is optional for user comfort but not required for proper operation
 // Now dynamically adjustable via option_bfo_offset (0-2000 Hz)
 // #define BFO_OFFSET 700.0   // Replaced by dynamic option_bfo_offset
 
