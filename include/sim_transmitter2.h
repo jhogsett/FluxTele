@@ -3,7 +3,6 @@
 
 // Wave generator selection for dual generator development
 #define ENABLE_GENERATOR_A  // Enable by default
-// #define ENABLE_GENERATOR_B  // Enable for dual generator testing
 #define ENABLE_GENERATOR_C  // Enable for duplication testing
 
 // Test configuration: Offset Generator C by a small amount for verification
@@ -106,14 +105,6 @@ protected:    // Common utility methods
     StationState2 _station_state;  // Current state in dynamic management system
 #endif
 
-#ifdef ENABLE_GENERATOR_B
-    // Wave Generator B variables
-    float _frequency_b;   // Current frequency difference from VFO
-    
-    // Dynamic station management state
-    StationState2 _station_state_b;  // Current state in dynamic management system
-#endif
-
 #ifdef ENABLE_GENERATOR_C
     // Wave Generator C variables
     float _frequency_c;   // Current frequency difference from VFO
@@ -134,19 +125,6 @@ protected:    // Common utility methods
                 signal_meter->add_charge(-charge);
             } else {
                 signal_meter->add_charge(charge);
-            }
-        }
-#endif
-#ifdef ENABLE_GENERATOR_B
-        if (!signal_meter) return;
-        int charge_b = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-        if (charge_b > 0) {
-            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff_b = abs(_fixed_freq - _vfo_freq);
-            if (freq_diff_b <= LOCK_WINDOW_HZ) {
-                signal_meter->add_charge(-charge_b);
-            } else {
-                signal_meter->add_charge(charge_b);
             }
         }
 #endif

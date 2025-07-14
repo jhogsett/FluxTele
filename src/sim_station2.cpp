@@ -73,14 +73,6 @@ bool SimStation2::begin(unsigned long time){
     }
 #endif
 
-#ifdef ENABLE_GENERATOR_B
-    int realizer_b = get_realizer(realizer_index++);
-    if(realizer_b != -1) {
-        WaveGen *wavegen_b = _wave_gen_pool->access_realizer(realizer_b);
-        wavegen_b->set_frequency(SPACE_FREQUENCY2, false);
-    }
-#endif
-
 #ifdef ENABLE_GENERATOR_C
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
@@ -122,14 +114,6 @@ void SimStation2::realize(){
     }
 #endif
 
-#ifdef ENABLE_GENERATOR_B
-    int realizer_b = get_realizer(realizer_index++);
-    if(realizer_b != -1) {
-        WaveGen *wavegen_b = _wave_gen_pool->access_realizer(realizer_b);
-        wavegen_b->set_active_frequency(_active);
-    }
-#endif
-
 #ifdef ENABLE_GENERATOR_C
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
@@ -152,14 +136,6 @@ bool SimStation2::update(Mode *mode){
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
             wavegen_a->set_frequency(_frequency);
-        }
-#endif
-
-#ifdef ENABLE_GENERATOR_B
-        int realizer_b = get_realizer(realizer_index++);
-        if(realizer_b != -1){
-            WaveGen *wavegen_b = _wave_gen_pool->access_realizer(realizer_b);
-            wavegen_b->set_frequency(_frequency_b);
         }
 #endif
 
@@ -188,11 +164,6 @@ bool SimStation2::step(unsigned long time){
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
 #endif
-#ifdef ENABLE_GENERATOR_B
-            _active = true;  // Use shared _active
-            realize();
-            send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
-#endif
 #ifdef ENABLE_GENERATOR_C
             _active = true;
             realize();
@@ -202,10 +173,6 @@ bool SimStation2::step(unsigned long time){
 
     	case STEP_MORSE_LEAVE_ON:
 #ifdef ENABLE_GENERATOR_A
-            // Carrier remains on - send another charge pulse
-            send_carrier_charge_pulse(_signal_meter);
-#endif
-#ifdef ENABLE_GENERATOR_B
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
 #endif
@@ -220,10 +187,6 @@ bool SimStation2::step(unsigned long time){
             _active = false;
             realize();
 #endif
-#ifdef ENABLE_GENERATOR_B
-            _active = false;  // Use shared _active
-            realize();
-#endif
 #ifdef ENABLE_GENERATOR_C
             _active = false;
             realize();
@@ -234,11 +197,6 @@ bool SimStation2::step(unsigned long time){
 #ifdef ENABLE_GENERATOR_A
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
             _active = false;
-            realize();
-#endif
-#ifdef ENABLE_GENERATOR_B
-            // CQ cycle completed! Check if operator gets frustrated and start wait delay
-            _active = false;  // Use shared _active
             realize();
 #endif
 #ifdef ENABLE_GENERATOR_C

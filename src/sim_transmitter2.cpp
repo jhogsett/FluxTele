@@ -7,7 +7,7 @@ SimTransmitter2::SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq)
     : Realization(wave_gen_pool, (int)(fixed_freq / 1000), 
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
         2  // Dual generator mode requires 2 realizers
-#elif defined(ENABLE_GENERATOR_A) || defined(ENABLE_GENERATOR_B) || defined(ENABLE_GENERATOR_C)
+#elif defined(ENABLE_GENERATOR_A) || defined(ENABLE_GENERATOR_C)
         1  // Single generator mode requires 1 realizer
 #else
         1  // Default fallback
@@ -27,13 +27,6 @@ SimTransmitter2::SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq)
     
     // Initialize dynamic station management state
     _station_state = DORMANT2;
-#endif
-#ifdef ENABLE_GENERATOR_B
-    // Initialize Wave Generator B variables
-    _frequency_b = 0.0;
-    
-    // Initialize dynamic station management state
-    _station_state_b = DORMANT2;
 #endif
 #ifdef ENABLE_GENERATOR_C
     // Initialize Wave Generator C variables
@@ -62,9 +55,6 @@ bool SimTransmitter2::common_begin(unsigned long time, float fixed_freq)
 #ifdef ENABLE_GENERATOR_A
     _frequency = 0.0;
 #endif
-#ifdef ENABLE_GENERATOR_B
-    _frequency_b = 0.0;
-#endif
 #ifdef ENABLE_GENERATOR_C
     _frequency_c = 0.0;
 #endif
@@ -84,17 +74,6 @@ void SimTransmitter2::common_frequency_update(Mode *mode)
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
     _frequency = raw_frequency + option_bfo_offset;
-#endif
-#ifdef ENABLE_GENERATOR_B
-    // Note: mode is expected to be a VFO object
-    VFO *vfo_b = static_cast<VFO*>(mode);
-    _vfo_freq = float(vfo_b->_frequency) + (vfo_b->_sub_frequency / 10.0);
-    
-    // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    float raw_frequency_b = _vfo_freq - _fixed_freq;  // Use shared _fixed_freq
-      // Add BFO offset for comfortable audio tuning
-    // This shifts the audio frequency without affecting signal meter calculations
-    _frequency_b = raw_frequency_b + option_bfo_offset;
 #endif
 #ifdef ENABLE_GENERATOR_C
     // Note: mode is expected to be a VFO object
@@ -125,24 +104,6 @@ bool SimTransmitter2::check_frequency_bounds()
                     WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
                     wavegen->set_frequency(SILENT_FREQ2, true);
                     wavegen->set_frequency(SILENT_FREQ2, false);
-                }
-            }
-        }
-    } else {
-        any_in_bounds = true;
-    }
-#endif
-
-#ifdef ENABLE_GENERATOR_B
-    if(_frequency_b > MAX_AUDIBLE_FREQ2 || _frequency_b < MIN_AUDIBLE_FREQ2){
-        if(_enabled){
-            _enabled = false;
-            // Set all generators to silent frequency  
-            for(int i = 0; i < get_realizer_count(); i++) {
-                int realizer = get_realizer(i);
-                if(realizer != -1) {
-                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
-                    wavegen->set_frequency(SILENT_FREQ2);
                 }
             }
         }
@@ -192,14 +153,6 @@ void SimTransmitter2::force_wave_generator_refresh()
         wavegen->force_refresh();
     }
 #endif
-#ifdef ENABLE_GENERATOR_B
-    // Force wave generator hardware update regardless of cached state
-    // This is needed when returning to SimRadio after application switches
-    if(_realizer != -1) {
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-        wavegen->force_refresh();
-    }
-#endif
 #ifdef ENABLE_GENERATOR_C
     // Force wave generator hardware update regardless of cached state
     // This is needed when returning to SimRadio after application switches
@@ -228,11 +181,6 @@ bool SimTransmitter2::reinitialize(unsigned long time, float fixed_freq)
     // Reset Wave Generator A state
     _frequency = 0.0;
     _station_state = ACTIVE2;  // Station is now active at new frequency
-#endif
-#ifdef ENABLE_GENERATOR_B
-    // Reset Wave Generator B state
-    _frequency_b = 0.0;
-    _station_state_b = ACTIVE2;  // Station is now active at new frequency
 #endif
 #ifdef ENABLE_GENERATOR_C
     // Reset Wave Generator C state
@@ -270,18 +218,6 @@ void SimTransmitter2::set_station_state(StationState2 new_state)
         }
     }
 #endif
-#ifdef ENABLE_GENERATOR_B
-    StationState2 old_state_b = _station_state_b;
-    _station_state_b = new_state;
-    
-    // Handle state transition logic
-    if(old_state_b == AUDIBLE2 && new_state != AUDIBLE2) {
-        // Losing AD9833 generator - release it
-        if(_realizer != -1) {
-            end();  // This will free the realizer
-        }
-    }
-#endif
 #ifdef ENABLE_GENERATOR_C
     StationState2 old_state_c = _station_state_c;
     _station_state_c = new_state;
@@ -303,9 +239,6 @@ StationState2 SimTransmitter2::get_station_state() const
 #ifdef ENABLE_GENERATOR_A
     return _station_state;
 #endif
-#ifdef ENABLE_GENERATOR_B
-    return _station_state_b;
-#endif
 #ifdef ENABLE_GENERATOR_C
     return _station_state_c;
 #endif
@@ -315,9 +248,6 @@ bool SimTransmitter2::is_audible() const
 {
 #ifdef ENABLE_GENERATOR_A
     return _station_state == AUDIBLE2;
-#endif
-#ifdef ENABLE_GENERATOR_B
-    return _station_state_b == AUDIBLE2;
 #endif
 #ifdef ENABLE_GENERATOR_C
     return _station_state_c == AUDIBLE2;
@@ -364,18 +294,6 @@ void SimTransmitter2::force_frequency_update()
     if(realizer_a != -1) {
         WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
         wavegen->set_frequency(_frequency);
-    }
-#endif
-
-#ifdef ENABLE_GENERATOR_B
-    // Update Generator B
-    float raw_frequency_b = _vfo_freq - _fixed_freq;
-    _frequency_b = raw_frequency_b + option_bfo_offset;
-    
-    int realizer_b = get_realizer(realizer_index++);
-    if(realizer_b != -1) {
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_b);
-        wavegen->set_frequency(_frequency_b);
     }
 #endif
 
