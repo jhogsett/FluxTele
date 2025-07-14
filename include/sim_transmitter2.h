@@ -97,15 +97,25 @@ protected:    // Common utility methods
     bool _active;       // True when transmitter should be active (shared)
     float _vfo_freq;    // Current VFO frequency (shared - there's only one VFO)
 
-#ifdef ENABLE_GENERATOR_A
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     // Wave Generator A variables
     float _frequency;   // Current frequency difference from VFO
     
     // Dynamic station management state
     StationState2 _station_state;  // Current state in dynamic management system
-#endif
 
-#ifdef ENABLE_GENERATOR_C
+    // Wave Generator C variables
+    float _frequency_c;   // Current frequency difference from VFO
+    
+    // Dynamic station management state
+    StationState2 _station_state_c;  // Current state in dynamic management system
+#elif defined(ENABLE_GENERATOR_A)
+    // Wave Generator A variables
+    float _frequency;   // Current frequency difference from VFO
+    
+    // Dynamic station management state
+    StationState2 _station_state;  // Current state in dynamic management system
+#elif defined(ENABLE_GENERATOR_C)
     // Wave Generator C variables
     float _frequency_c;   // Current frequency difference from VFO
     
@@ -115,7 +125,7 @@ protected:    // Common utility methods
 
     // Centralized charge pulse logic for all simulated stations
     virtual void send_carrier_charge_pulse(SignalMeter* signal_meter) {
-#ifdef ENABLE_GENERATOR_A
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
         if (!signal_meter) return;
         int charge = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
         if (charge > 0) {
@@ -127,8 +137,30 @@ protected:    // Common utility methods
                 signal_meter->add_charge(charge);
             }
         }
-#endif
-#ifdef ENABLE_GENERATOR_C
+        if (!signal_meter) return;
+        int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
+        if (charge_c > 0) {
+            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
+            float freq_diff_c = abs(_fixed_freq - _vfo_freq);
+            if (freq_diff_c <= LOCK_WINDOW_HZ) {
+                signal_meter->add_charge(-charge_c);
+            } else {
+                signal_meter->add_charge(charge_c);
+            }
+        }
+#elif definded(ENABLE_GENERATOR_A)
+        if (!signal_meter) return;
+        int charge = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
+        if (charge > 0) {
+            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
+            float freq_diff = abs(_fixed_freq - _vfo_freq);
+            if (freq_diff <= LOCK_WINDOW_HZ) {
+                signal_meter->add_charge(-charge);
+            } else {
+                signal_meter->add_charge(charge);
+            }
+        }
+#elif defined(ENABLE_GENERATOR_C)
         if (!signal_meter) return;
         int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
         if (charge_c > 0) {

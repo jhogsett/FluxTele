@@ -62,18 +62,34 @@ bool SimStation2::begin(unsigned long time){
         return false;  // Failed to acquire all needed wave generators
     }
 
+    ///////////////////////////////////////////////////////////////////
+    // BAD this assumes we have realizers at index 0 and 1 not the ones 
+    // we got
+    ///////////////////////////////////////////////////////////////////
+
     // Initialize all acquired wave generators
     int realizer_index = 0;
     
-#ifdef ENABLE_GENERATOR_A
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
         wavegen_a->set_frequency(SPACE_FREQUENCY2, false);
     }
-#endif
 
-#ifdef ENABLE_GENERATOR_C
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+        wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
+    }
+
+#elif defined(ENABLE_GENERATOR_A)
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+        wavegen_a->set_frequency(SPACE_FREQUENCY2, false);
+    }
+#elif defined(ENABLE_GENERATOR_C)
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
@@ -103,18 +119,33 @@ void SimStation2::realize(){
         return;  // Out of audible range
     }
 
+    ///////////////////////////////////////////////////////////////////
+    // BAD this assumes we have realizers at index 0 and 1 not the ones 
+    // we got
+    ///////////////////////////////////////////////////////////////////
+
     // Set active state for all acquired wave generators
     int realizer_index = 0;
-    
-#ifdef ENABLE_GENERATOR_A
+
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
         wavegen_a->set_active_frequency(_active);
     }
-#endif
 
-#ifdef ENABLE_GENERATOR_C
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+        wavegen_c->set_active_frequency(_active);
+    }
+#elif defined(ENABLE_GENERATOR_A)
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+        wavegen_a->set_active_frequency(_active);
+    }
+#elif defined(ENABLE_GENERATOR_C)
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
@@ -128,18 +159,33 @@ bool SimStation2::update(Mode *mode){
     common_frequency_update(mode);
 
     if(_enabled && has_all_realizers()){
+
+        ///////////////////////////////////////////////////////////////////
+        // BAD this assumes we have realizers at index 0 and 1 not the ones 
+        // we got
+        ///////////////////////////////////////////////////////////////////
+
         // Update frequencies for all acquired wave generators
         int realizer_index = 0;
-        
-#ifdef ENABLE_GENERATOR_A
+
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
         int realizer_a = get_realizer(realizer_index++);
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
             wavegen_a->set_frequency(_frequency);
         }
-#endif
-
-#ifdef ENABLE_GENERATOR_C
+        int realizer_c = get_realizer(realizer_index++);
+        if(realizer_c != -1){
+            WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+            wavegen_c->set_frequency(_frequency_c);
+        }
+#elif defined(ENABLE_GENERATOR_A)
+        int realizer_a = get_realizer(realizer_index++);
+        if(realizer_a != -1){
+            WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+            wavegen_a->set_frequency(_frequency);
+        }
+#elif defined(ENABLE_GENERATOR_C)
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
@@ -159,12 +205,19 @@ bool SimStation2::step(unsigned long time){
     int morse_state = _morse.step_morse(time);
       switch(morse_state){
     	case STEP_MORSE_TURN_ON:
-#ifdef ENABLE_GENERATOR_A
+
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
             _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
-#endif
-#ifdef ENABLE_GENERATOR_C
+            _active = true;
+            realize();
+            send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+#elif defined(ENABLE_GENERATOR_A)
+            _active = true;
+            realize();
+            send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+#elif defined(ENABLE_GENERATOR_C)
             _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
@@ -172,34 +225,48 @@ bool SimStation2::step(unsigned long time){
     		break;
 
     	case STEP_MORSE_LEAVE_ON:
-#ifdef ENABLE_GENERATOR_A
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
-#endif
-#ifdef ENABLE_GENERATOR_C
+            // Carrier remains on - send another charge pulse
+            send_carrier_charge_pulse(_signal_meter);
+#elif defined(ENABLE_GENERATOR_A)
+            // Carrier remains on - send another charge pulse
+            send_carrier_charge_pulse(_signal_meter);
+#elif defined(ENABLE_GENERATOR_C)
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
 #endif
             break;
 
     	case STEP_MORSE_TURN_OFF:
-#ifdef ENABLE_GENERATOR_A
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
             _active = false;
             realize();
-#endif
-#ifdef ENABLE_GENERATOR_C
+            _active = false;
+            realize();
+#elif defined(ENABLE_GENERATOR_A)
+            _active = false;
+            realize();
+#elif defined(ENABLE_GENERATOR_C)
             _active = false;
             realize();
 #endif
             // No charge pulse when carrier turns off
     		break;
        	case STEP_MORSE_MESSAGE_COMPLETE:
-#ifdef ENABLE_GENERATOR_A
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
             _active = false;
             realize();
-#endif
-#ifdef ENABLE_GENERATOR_C
+            // CQ cycle completed! Check if operator gets frustrated and start wait delay
+            _active = false;
+            realize();
+#elif defined(ENABLE_GENERATOR_A)
+            // CQ cycle completed! Check if operator gets frustrated and start wait delay
+            _active = false;
+            realize();
+#elif defined(ENABLE_GENERATOR_C)
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
             _active = false;
             realize();
