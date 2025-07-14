@@ -70,7 +70,13 @@ bool SimStation2::begin(unsigned long time){
 #endif
 
     // Both generators must succeed for dual generator operation
-#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_B)
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
+    if(!success_a || !success_c) {
+        // If either fails, clean up any partial allocation and retry later
+        end();  // This will clean up both realizers
+        return false;
+    }
+#elif defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_B)
     if(!success_a || !success_b) {
         // If either fails, clean up any partial allocation and retry later
         end();  // This will clean up both realizers

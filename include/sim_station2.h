@@ -2,7 +2,7 @@
 #define __SIM_STATION2_H__
 
 // Wave generator selection for dual generator development
-// #define ENABLE_GENERATOR_A  // Enable by default
+#define ENABLE_GENERATOR_A  // Enable by default
 // #define ENABLE_GENERATOR_B  // Enable for dual generator testing
 // #define ENABLE_GENERATOR_C  // Enable for duplication testing
 #define ENABLE_GENERATOR_C  // Enable for duplication testing

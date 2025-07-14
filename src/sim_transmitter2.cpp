@@ -98,9 +98,9 @@ void SimTransmitter2::common_frequency_update(Mode *mode)
     
     // Calculate raw frequency difference (used for signal meter - no BFO offset)
     float raw_frequency_c = _vfo_freq - _fixed_freq;
-      // Add BFO offset for comfortable audio tuning
+      // Add BFO offset for comfortable audio tuning + test offset for dual generator verification
     // This shifts the audio frequency without affecting signal meter calculations
-    _frequency_c = raw_frequency_c + option_bfo_offset;
+    _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
 #endif
 }
 
@@ -389,7 +389,7 @@ void SimTransmitter2::force_frequency_update()
     if(_enabled && _realizer != -1) {
         // Recalculate _frequency with current _fixed_freq and _vfo_freq
         float raw_frequency_c = _vfo_freq - _fixed_freq;
-        _frequency_c = raw_frequency_c + option_bfo_offset;
+        _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
           // Update the wave generator with the new frequency
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
         wavegen_c->set_frequency(_frequency_c);
