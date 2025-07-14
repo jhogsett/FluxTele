@@ -66,6 +66,7 @@ bool SimTransmitter2::common_begin(unsigned long time, float fixed_freq)
     // Initialize generator-specific variables
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     _frequency = 0.0;
+
     _frequency_c = 0.0;
 #elif defined(ENABLE_GENERATOR_A)
     _frequency = 0.0;
@@ -98,7 +99,7 @@ void SimTransmitter2::common_frequency_update(Mode *mode)
       // Add BFO offset for comfortable audio tuning + test offset for dual generator verification
     // This shifts the audio frequency without affecting signal meter calculations
     _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
-    #elif defined(ENABLE_GENERATOR_A)
+#elif defined(ENABLE_GENERATOR_A)
     // Note: mode is expected to be a VFO object
     VFO *vfo = static_cast<VFO*>(mode);
     _vfo_freq = float(vfo->_frequency) + (vfo->_sub_frequency / 10.0);
@@ -143,6 +144,7 @@ bool SimTransmitter2::check_frequency_bounds()
     } else {
         any_in_bounds = true;
     }
+
     if(_frequency_c > MAX_AUDIBLE_FREQ2 || _frequency_c < MIN_AUDIBLE_FREQ2){
         if(_enabled){
             _enabled = false;
@@ -342,6 +344,7 @@ StationState2 SimTransmitter2::get_station_state() const
 {
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     return _station_state;
+
     return _station_state_c;
 #elif defined(ENABLE_GENERATOR_A)
     return _station_state;
@@ -354,6 +357,7 @@ bool SimTransmitter2::is_audible() const
 {
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     return _station_state == AUDIBLE2;
+    
     return _station_state_c == AUDIBLE2;
 #elif defined(ENABLE_GENERATOR_A)
     return _station_state == AUDIBLE2;

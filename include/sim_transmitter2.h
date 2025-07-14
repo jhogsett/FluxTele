@@ -137,6 +137,7 @@ protected:    // Common utility methods
                 signal_meter->add_charge(charge);
             }
         }
+        
         if (!signal_meter) return;
         int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
         if (charge_c > 0) {

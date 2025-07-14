@@ -174,6 +174,7 @@ bool SimStation2::update(Mode *mode){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
             wavegen_a->set_frequency(_frequency);
         }
+
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
@@ -210,6 +211,7 @@ bool SimStation2::step(unsigned long time){
             _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+
             _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
@@ -228,6 +230,7 @@ bool SimStation2::step(unsigned long time){
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
+
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
 #elif defined(ENABLE_GENERATOR_A)
@@ -243,6 +246,7 @@ bool SimStation2::step(unsigned long time){
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
             _active = false;
             realize();
+
             _active = false;
             realize();
 #elif defined(ENABLE_GENERATOR_A)
@@ -259,6 +263,7 @@ bool SimStation2::step(unsigned long time){
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
             _active = false;
             realize();
+            
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
             _active = false;
             realize();
