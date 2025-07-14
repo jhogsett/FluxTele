@@ -56,13 +56,36 @@ SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, 
 }
 
 bool SimStation2::begin(unsigned long time){
+    // For dual generator operation, we need BOTH generators to be successfully acquired
+    bool success_a = false, success_b = false, success_c = false;
+    
 #ifdef ENABLE_GENERATOR_A
-    if(!common_begin(time, _fixed_freq)) {
-        return false;
-    }
+    success_a = common_begin(time, _fixed_freq);
 #endif
 #ifdef ENABLE_GENERATOR_B
-    if(!common_begin(time, _fixed_freq_b)) {
+    success_b = common_begin(time, _fixed_freq);  // Use shared _fixed_freq
+#endif
+#ifdef ENABLE_GENERATOR_C
+    success_c = common_begin(time, _fixed_freq);  // Use shared _fixed_freq
+#endif
+
+    // Both generators must succeed for dual generator operation
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_B)
+    if(!success_a || !success_b) {
+        // If either fails, clean up any partial allocation and retry later
+        end();  // This will clean up both realizers
+        return false;
+    }
+#elif defined(ENABLE_GENERATOR_A)
+    if(!success_a) {
+        return false;
+    }
+#elif defined(ENABLE_GENERATOR_B)
+    if(!success_b) {
+        return false;
+    }
+#elif defined(ENABLE_GENERATOR_C)
+    if(!success_c) {
         return false;
     }
 #endif
@@ -95,7 +118,26 @@ bool SimStation2::begin(unsigned long time){
     WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
     wavegen_b->set_frequency(SPACE_FREQUENCY2, false);    // Set _enabled and force frequency update with existing _vfo_freq
     // _vfo_freq should retain its value from the previous cycle
-    _enabled_b = true;
+    _enabled = true;  // Use shared _enabled
+    force_frequency_update();
+    realize();  // CRITICAL: Set active state for audio output!
+
+    // Start first CQ immediately (after frequencies are set)
+    _morse.start_morse(_generated_message, _stored_wpm);
+    _in_wait_delay = false;
+
+    return true;
+#endif
+#ifdef ENABLE_GENERATOR_C
+    // Check if we have a valid realizer before accessing it
+    if(_realizer == -1) {
+        return false;
+    }
+
+    WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
+    wavegen_c->set_frequency(SPACE_FREQUENCY2, false);    // Set _enabled and force frequency update with existing _vfo_freq
+    // _vfo_freq should retain its value from the previous cycle
+    _enabled = true;
     force_frequency_update();
     realize();  // CRITICAL: Set active state for audio output!
 
@@ -130,7 +172,19 @@ void SimStation2::realize(){
     }
 
     WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
-    wavegen_b->set_active_frequency(_active_b);
+    wavegen_b->set_active_frequency(_active);  // Use shared _active
+#endif
+#ifdef ENABLE_GENERATOR_C
+    if(_realizer == -1) {
+        return;  // No WaveGen allocated
+    }
+
+    if(!check_frequency_bounds()) {
+        return;  // Out of audible range
+    }
+
+    WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
+    wavegen_c->set_active_frequency(_active);
 #endif
 }
 
@@ -147,9 +201,17 @@ bool SimStation2::update(Mode *mode){
     realize();
 #endif
 #ifdef ENABLE_GENERATOR_B
-    if(_enabled_b && _realizer != -1){
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-        wavegen->set_frequency(_frequency_b);
+    if(_enabled && _realizer != -1){
+        WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
+        wavegen_b->set_frequency(_frequency_b);
+    }
+
+    realize();
+#endif
+#ifdef ENABLE_GENERATOR_C
+    if(_enabled && _realizer != -1){
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
+        wavegen_c->set_frequency(_frequency_c);
     }
 
     realize();
@@ -171,7 +233,12 @@ bool SimStation2::step(unsigned long time){
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
 #endif
 #ifdef ENABLE_GENERATOR_B
-            _active_b = true;
+            _active = true;  // Use shared _active
+            realize();
+            send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+#endif
+#ifdef ENABLE_GENERATOR_C
+            _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
 #endif
@@ -186,6 +253,10 @@ bool SimStation2::step(unsigned long time){
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
 #endif
+#ifdef ENABLE_GENERATOR_C
+            // Carrier remains on - send another charge pulse
+            send_carrier_charge_pulse(_signal_meter);
+#endif
             break;
 
     	case STEP_MORSE_TURN_OFF:
@@ -194,7 +265,11 @@ bool SimStation2::step(unsigned long time){
             realize();
 #endif
 #ifdef ENABLE_GENERATOR_B
-            _active_b = false;
+            _active = false;  // Use shared _active
+            realize();
+#endif
+#ifdef ENABLE_GENERATOR_C
+            _active = false;
             realize();
 #endif
             // No charge pulse when carrier turns off
@@ -207,7 +282,12 @@ bool SimStation2::step(unsigned long time){
 #endif
 #ifdef ENABLE_GENERATOR_B
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
-            _active_b = false;
+            _active = false;  // Use shared _active
+            realize();
+#endif
+#ifdef ENABLE_GENERATOR_C
+            // CQ cycle completed! Check if operator gets frustrated and start wait delay
+            _active = false;
             realize();
 #endif
 
@@ -305,13 +385,8 @@ void SimStation2::apply_operator_frustration_drift()
 
     float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
 
-    // Apply drift to the base class frequency
-#ifdef ENABLE_GENERATOR_A
+    // Apply drift to the shared frequency
     _fixed_freq = _fixed_freq + drift;
-#endif
-#ifdef ENABLE_GENERATOR_B
-    _fixed_freq_b = _fixed_freq_b + drift;
-#endif
       // ENHANCEMENT: Generate new callsign to simulate a completely different operator
     // This makes it appear that a new station has come on frequency instead of
     // the same operator continuing to call CQ after frequency adjustment

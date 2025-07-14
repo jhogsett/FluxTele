@@ -3,7 +3,11 @@
 
 // Wave generator selection for dual generator development
 // #define ENABLE_GENERATOR_A  // Enable by default
-#define ENABLE_GENERATOR_B  // Enable for dual generator testing
+// #define ENABLE_GENERATOR_B  // Enable for dual generator testing
+#define ENABLE_GENERATOR_C  // Enable for duplication testing
+
+// Test configuration: Offset Generator B by a small amount for verification
+#define GENERATOR_B_TEST_OFFSET 50.0  // Hz offset for testing dual generator operation
 
 #include "signal_meter.h"
 #include "vfo.h"
@@ -88,30 +92,34 @@ protected:    // Common utility methods
     void common_frequency_update(Mode *mode);  // Common frequency calculation (mode must be VFO)
     void force_frequency_update();  // Immediately update wave generator after _fixed_freq changes
 
+    // Shared station properties (independent of wave generator)
+    float _fixed_freq;  // Target frequency for this station (shared between A and B)
+    bool _enabled;      // True when frequency is in audible range (shared)
+    bool _active;       // True when transmitter should be active (shared)
+    float _vfo_freq;    // Current VFO frequency (shared - there's only one VFO)
+
 #ifdef ENABLE_GENERATOR_A
-    // Common member variables - Wave Generator A
-    float _fixed_freq;  // Target frequency for this station
-    bool _enabled;      // True when frequency is in audible range
+    // Wave Generator A variables
     float _frequency;   // Current frequency difference from VFO
-    float _vfo_freq;    // Current VFO frequency (for signal meter charge calculation)
-    // NOTE: Required by StationManager when using shared Realization arrays
-    bool _active;       // True when transmitter should be active
     
     // Dynamic station management state
     StationState2 _station_state;  // Current state in dynamic management system
 #endif
 
 #ifdef ENABLE_GENERATOR_B
-    // Common member variables - Wave Generator B
-    float _fixed_freq_b;  // Target frequency for this station
-    bool _enabled_b;      // True when frequency is in audible range
+    // Wave Generator B variables
     float _frequency_b;   // Current frequency difference from VFO
-    float _vfo_freq_b;    // Current VFO frequency (for signal meter charge calculation)
-    // NOTE: Required by StationManager when using shared Realization arrays
-    bool _active_b;       // True when transmitter should be active
     
     // Dynamic station management state
     StationState2 _station_state_b;  // Current state in dynamic management system
+#endif
+
+#ifdef ENABLE_GENERATOR_C
+    // Wave Generator C variables
+    float _frequency_c;   // Current frequency difference from VFO
+    
+    // Dynamic station management state
+    StationState2 _station_state_c;  // Current state in dynamic management system
 #endif
 
     // Centralized charge pulse logic for all simulated stations
@@ -131,14 +139,27 @@ protected:    // Common utility methods
 #endif
 #ifdef ENABLE_GENERATOR_B
         if (!signal_meter) return;
-        int charge_b = VFO::calculate_signal_charge(_fixed_freq_b, _vfo_freq_b);
+        int charge_b = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
         if (charge_b > 0) {
             const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff_b = abs(_fixed_freq_b - _vfo_freq_b);
+            float freq_diff_b = abs(_fixed_freq - _vfo_freq);
             if (freq_diff_b <= LOCK_WINDOW_HZ) {
                 signal_meter->add_charge(-charge_b);
             } else {
                 signal_meter->add_charge(charge_b);
+            }
+        }
+#endif
+#ifdef ENABLE_GENERATOR_C
+        if (!signal_meter) return;
+        int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
+        if (charge_c > 0) {
+            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
+            float freq_diff_c = abs(_fixed_freq - _vfo_freq);
+            if (freq_diff_c <= LOCK_WINDOW_HZ) {
+                signal_meter->add_charge(-charge_c);
+            } else {
+                signal_meter->add_charge(charge_c);
             }
         }
 #endif
