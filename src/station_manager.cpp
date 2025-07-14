@@ -167,19 +167,7 @@ void StationManager::setupPipeline(uint32_t vfo_freq) {
         stations[i]->begin(millis());
         stations[i]->setActive(true);
         stations[i]->set_station_state(ACTIVE);
-        
-        #ifdef DEBUG_PIPELINING
-        Serial.print("SETUP S");
-        Serial.print(i);
-        Serial.print(" at ");
-        Serial.println((uint32_t)stations[i]->get_fixed_frequency());
-        #endif
     }
-    
-    #ifdef DEBUG_PIPELINING
-    Serial.print("INIT: ");
-    Serial.println(vfo_freq);
-    #endif
 }
 
 void StationManager::updatePipeline(uint32_t vfo_freq) {
@@ -207,44 +195,22 @@ void StationManager::updatePipeline(uint32_t vfo_freq) {
             // Reduce time between reallocations for more responsive pipelining
             static unsigned long last_realloc_time = 0;
             if (current_time - last_realloc_time > 200) { // 200ms instead of 500ms
-                #ifdef DEBUG_PIPELINING
-                Serial.print("CALLING reallocateStations, shift=");
-                Serial.println(center_shift);
-                #endif
                 reallocateStations(vfo_freq);
                 pipeline_center_freq = vfo_freq;
                 last_realloc_time = current_time;
             }
         }
-        
-        #ifdef DEBUG_PIPELINING
-        Serial.print("PIPE: ");
-        Serial.print(vfo_freq);
-        Serial.print(" dir=");
-        Serial.println(tuning_direction);
-        #endif
     }
     else if (current_time - last_tuning_time > 5000) { // 5 second settle time - longer to allow listening
         // User has stopped tuning - pause pipeline updates
         if (tuning_direction != 0) {
             tuning_direction = 0;
-            #ifdef DEBUG_PIPELINING
-            Serial.println("PAUSE");
-            #endif
         }
     }
 }
 
 void StationManager::reallocateStations(uint32_t vfo_freq) {
-    #ifdef DEBUG_PIPELINING
-    Serial.print("reallocate called, dir=");
-    Serial.println(tuning_direction);
-    #endif
-    
     if (tuning_direction == 0) {
-        #ifdef DEBUG_PIPELINING
-        Serial.println("SKIP: dir=0");
-        #endif
         return; // Not tuning - don't move stations
     }
     
@@ -264,17 +230,6 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
         int32_t distance_from_vfo = (int32_t)(station_freq - vfo_freq);
         uint32_t abs_distance = abs(distance_from_vfo);
         
-        #ifdef DEBUG_PIPELINING
-        Serial.print("S");
-        Serial.print(i);
-        Serial.print(": ");
-        Serial.print(station_freq);
-        Serial.print(" dist=");
-        Serial.print(abs_distance);
-        Serial.print(" vs ");
-        Serial.println(PIPELINE_LOOKAHEAD_RANGE);
-        #endif
-        
         if (abs_distance > PIPELINE_LOOKAHEAD_RANGE) {
             StationState state = stations[i]->get_station_state();
             
@@ -291,29 +246,12 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
                 can_interrupt = (abs_distance > PIPELINE_AUDIBLE_RANGE);
             }
             
-            #ifdef DEBUG_PIPELINING
-            Serial.print("  state=");
-            Serial.print(state);
-            Serial.print(" abs_dist=");
-            Serial.print(abs_distance);
-            Serial.print(" range=");
-            Serial.print(PIPELINE_AUDIBLE_RANGE);
-            Serial.print(" can_int=");
-            Serial.println(can_interrupt);
-            #endif
-            
             if (can_interrupt) {
                 candidates[candidate_count] = {i, abs_distance, can_interrupt};
                 candidate_count++;
             }
         }
     }
-    
-    #ifdef DEBUG_PIPELINING
-    Serial.print("Found ");
-    Serial.print(candidate_count);
-    Serial.println(" candidates");
-    #endif
     
     // Sort candidates by distance (furthest first)
     for (int i = 0; i < candidate_count - 1; ++i) {
@@ -352,13 +290,6 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
         stations[i]->randomize();
         
         stations_moved++;
-        
-        #ifdef DEBUG_PIPELINING
-        Serial.print("MOVE: S");
-        Serial.print(i);
-        Serial.print(" to ");
-        Serial.println(new_freq);
-        #endif
     }
 }
 

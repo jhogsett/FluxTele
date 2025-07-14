@@ -648,29 +648,6 @@ StationManager station_manager(realizations, 4);  // Use optimized constructor w
 unsigned long last_exchange_randomization = 0;
 const unsigned long EXCHANGE_RANDOMIZE_INTERVAL = 30000;  // 30 seconds between signal changes
 
-// DEBUG: Station count verification (updated for FluxTune shared array optimization)
-void debug_station_pool_state() {
-    Serial.println("=== SHARED REALIZATIONS DEBUG ===");
-    Serial.print("Array size (compile time): ");
-    Serial.println(sizeof(realizations) / sizeof(realizations[0]));
-    
-    int actual_count = 0;
-    for(int i = 0; i < (sizeof(realizations) / sizeof(realizations[0])); i++) {
-        Serial.print("realizations[");
-        Serial.print(i);
-        Serial.print("] = ");
-        if(realizations[i] != nullptr) {
-            Serial.println("VALID");
-            actual_count++;
-        } else {
-            Serial.println("nullptr - CRITICAL BUG!");
-        }
-    }
-    Serial.print("Valid stations: ");
-    Serial.println(actual_count);
-    Serial.println("=== END STATION DEBUG ===");
-}
-
 VFO vfoa("EXC A", 55500000.0, 10, &realization_pool);
 VFO vfob("EXC B", 99900000.0, 10, &realization_pool);
 VFO vfoc("EXC C", 11100000.0, 1, &realization_pool);
@@ -776,9 +753,6 @@ void setup(){
 	station_manager.enableDynamicPipelining(true);
 	station_manager.setupPipeline(55500000); // Start with VFO A frequency (55.5 MHz)
 #endif
-	
-	// DEBUG: Check for station pool array bounds bug
-	debug_station_pool_state();
 }
 
 #ifdef ENABLE_BRANDING_MODE
@@ -1229,9 +1203,6 @@ void loop()
 // 		if (millis() - last_exchange_randomization > EXCHANGE_RANDOMIZE_INTERVAL) {
 // 			exchange_station1.randomize();
 // 			last_exchange_randomization = millis();
-// 			Serial.print("SimExchange: Periodic randomization at ");
-// 			Serial.print(millis());
-// 			Serial.println(" ms");
 // 		}
 // #endif
 #endif
@@ -1298,8 +1269,6 @@ void loop()
 				Mode* current_mode = dispatcher->get_current_mode();
 				if (current_mode && dispatcher == &dispatcher1) {
 					VFO* current_vfo = static_cast<VFO*>(current_mode);
-					Serial.print("VFO: ");
-					Serial.println(current_vfo->_frequency);
 				}
 				#endif
 				
