@@ -18,7 +18,7 @@
                                  // Use this for dynamic station pipelining development
 
 // ===== FLUXTUNE DEMONSTRATION CONFIGURATION =====
-#define CONFIG_MIXED_STATIONS    // Uncomment to restore FluxTune functionality for comparison
+// #define CONFIG_MIXED_STATIONS    // Uncomment to restore FluxTune functionality for comparison
 
 // ===== TEST CONFIGURATIONS =====
 // #define CONFIG_FOUR_CW          // Four CW/Morse stations for CW testing
@@ -28,6 +28,7 @@
 // #define CONFIG_FILE_PILE_UP     // Five CW/Morse stations simulating Scarborough Reef pile-up (BS77H variations)
 // #define CONFIG_FOUR_NUMBERS     // Four Numbers stations for spooky testing
 // #define CONFIG_FOUR_PAGER       // Four Pager stations for digital testing
+#define CONFIG_STATION2_TEST    // Test exact duplicate SimStation2 to verify duplication process works
 // #define CONFIG_FOUR_RTTY        // Four RTTY stations for RTTY testing
 // #define CONFIG_FOUR_JAMMER      // Four Jammer stations for interference testing
 // #define CONFIG_PAGER2_TEST      // Single dual-tone pager station for testing dual wave generators
@@ -120,11 +121,11 @@
     // Testing: CW + SimRing (dual generator telephony baseline)
     #define ENABLE_MORSE_STATION    // Basic CW/Morse station (SimStation)
     // #define ENABLE_EXCHANGE_STATION // Telephone exchange simulator (SimExchange) - NEW!
-    #define ENABLE_RING_STATION     // Simple telephone ring simulator (SimRing) - NEW! (replaces SimPager2)
+    #define ENABLE_RING_STATION     // Simple telephone ring simulator (SimRing) - NEW! (testing our fixed version)
     // #define ENABLE_NUMBERS_STATION  // Numbers Station (SimNumbers) - REMOVED for station spacing
     // #define ENABLE_PAGER_STATION    // Pager Station (SimPager) - TEMPORARILY DISABLED for SimPager2 testing
     // #define ENABLE_RTTY_STATION     // RTTY Station (SimRTTY) - REMOVED for station spacing
-    // #define ENABLE_PAGER2_STATION   // SimPager2 (dual wave generator) - REPLACED by SimRing
+    // #define ENABLE_PAGER2_STATION   // SimPager2 (dual wave generator) - DISABLED for SimRing testing
     // NOTE: To enable jammer, comment out RING and uncomment below:
     // #define ENABLE_JAMMER_STATION   // Jammer Station (SimJammer) - replaces RING
 #endif
@@ -207,6 +208,12 @@
 #ifdef CONFIG_MINIMAL_CW
     // Minimal: Single CW station for memory testing
     #define ENABLE_MORSE_STATION
+    // All other stations disabled
+#endif
+
+#ifdef CONFIG_STATION2_TEST
+    // Test: Single SimStation2 to verify exact duplication process
+    #define ENABLE_STATION2_TEST
     // All other stations disabled
 #endif
 

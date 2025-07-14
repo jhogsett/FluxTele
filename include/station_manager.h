@@ -7,6 +7,12 @@
 #include <stdint.h>
 
 // Dynamic MAX_STATIONS based on configuration
+// 
+// *** CRITICAL: When adding new configurations, update MAX_STATIONS! ***
+// Each new CONFIG_* must be added to the appropriate #elif condition below
+// to ensure MAX_STATIONS matches the actual station count in that configuration.
+// Mismatched values cause array bounds violations and continuous restarts!
+//
 #ifdef CONFIG_TEN_CW
 #define MAX_STATIONS 21
 #elif defined(CONFIG_MIXED_STATIONS)
@@ -17,7 +23,7 @@
 #define MAX_STATIONS 4
 #elif defined(CONFIG_DEV_LOW_RAM) || defined(CONFIG_FILE_PILE_UP)
 #define MAX_STATIONS 3
-#elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE) || defined(CONFIG_PAGER2_TEST)
+#elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE) || defined(CONFIG_PAGER2_TEST) || defined(CONFIG_STATION2_TEST)
 #define MAX_STATIONS 1
 #else
 #define MAX_STATIONS 4  // Default fallback

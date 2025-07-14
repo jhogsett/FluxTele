@@ -35,12 +35,16 @@
 #include "sim_station.h"
 #endif
 
+#ifdef ENABLE_STATION2_TEST
+#include "sim_station.h"  // Use original SimStation for baseline test
+#endif
+
 #ifdef ENABLE_EXCHANGE_STATION
 #include "sim_exchange.h"
 #endif
 
 #ifdef ENABLE_RING_STATION
-#include "sim_ring.h"
+#include "sim_ring2.h"  // TESTING: Use SimRing2 (exact copy of SimPager pattern)
 #endif
 
 #ifdef ENABLE_NUMBERS_STATION
@@ -183,13 +187,17 @@ SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 #endif
 
 #ifdef ENABLE_RING_STATION
-SimRing ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
+SimRing2 ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // TESTING: SimRing2 (exact copy of SimPager pattern)
+#endif
+
+#ifdef ENABLE_PAGER2_STATION
+SimPager2 pager2_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // Test dual-generator relocation behavior
 #endif
 
 // FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
 // All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
 Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual station count! ***
-                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRing)
+                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRing with fixed override methods)
                               // Update array size when changing station configurations!
 
 #ifdef ENABLE_MORSE_STATION
@@ -201,6 +209,9 @@ Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual 
 #endif
 #ifdef ENABLE_RING_STATION
     &ring_station1  // Simple telephone ring simulator
+#endif
+#ifdef ENABLE_PAGER2_STATION
+    &pager2_station1  // Dual-generator pager for relocation testing
 #endif
 #ifdef ENABLE_NUMBERS_STATION
     &numbers_station1,  // DISABLED per station_config.h
@@ -574,6 +585,16 @@ Realization *realizations[1] = {
 };
 #endif
 
+#ifdef CONFIG_STATION2_TEST
+// Test config with original SimStation to establish baseline behavior
+// This should demonstrate proper tuning + relocation behavior
+SimStation original_station_test(&wave_gen_pool, &signal_meter, 55500000.0, 15);  // 15 WPM at test frequency
+
+Realization *realizations[1] = {
+    &original_station_test
+};
+#endif
+
 // ============================================================================
 // REALIZATION POOL - Initialize with configured realizations
 // ============================================================================
@@ -585,6 +606,8 @@ bool realization_stats[1] = {false};
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
 bool realization_stats[1] = {false};  // Single dual-tone pager station
+#elif defined(CONFIG_STATION2_TEST)
+bool realization_stats[1] = {false};  // Single SimStation2 test station
 #elif defined(CONFIG_DEV_LOW_RAM)
 bool realization_stats[3] = {false, false, false};
 #elif defined(CONFIG_FIVE_CW_RESOURCE_TEST)
@@ -604,6 +627,8 @@ RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CR
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_PAGER2_TEST)
+RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_STATION2_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_DEV_LOW_RAM)
 RealizationPool realization_pool(realizations, realization_stats, 3);  // *** CRITICAL: Count must match arrays above! ***
@@ -629,6 +654,8 @@ StationManager station_manager(realizations, 1);  // Use optimized constructor w
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_PAGER2_TEST)
+StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
+#elif defined(CONFIG_STATION2_TEST)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_DEV_LOW_RAM)
 StationManager station_manager(realizations, 3);  // Use optimized constructor with shared array
@@ -1177,6 +1204,13 @@ void loop()
 	// DEBUG: Test dual generator acquisition capability
 	delay(2000);  // Wait for initialization to settle
 	pager2_test.debug_test_dual_generator_acquisition();
+#endif
+
+#ifdef CONFIG_STATION2_TEST
+	// Initialize original SimStation test station to establish baseline behavior
+	// This should demonstrate proper tuning + relocation behavior
+	original_station_test.begin(time + random(1000));
+	original_station_test.set_station_state(AUDIBLE);
 #endif
 	set_application(APP_SIMRADIO, &display);
 

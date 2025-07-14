@@ -234,9 +234,10 @@ bool SimPager2::update(Mode *mode)
 {
     common_frequency_update(mode);
 
-    if(_enabled) {
-        // Note: We don't set frequencies here like RTTY does
-        // Pager frequencies are set in realize() based on current tone
+    if(_enabled && _realizer != -1) {
+        // CRITICAL: Update wave generator with current tuned frequency like SimStation does
+        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
+        wavegen->set_frequency(_frequency);
     }
 
     realize();

@@ -7,7 +7,7 @@
 #define ENABLE_DUAL_GENERATOR   // Use both generators for dual-tone (target behavior)
 
 #include "async_telco.h"
-#include "sim_transmitter.h"
+#include "sim_dual_transmitter.h"
 
 class SignalMeter; // Forward declaration
 
@@ -16,17 +16,19 @@ class SignalMeter; // Forward declaration
 #define RING_TONE_HIGH_OFFSET 480.0    // Second ring tone (480 Hz) 
 #define RING_TONE_MIN_SEPARATION 40.0  // Separation between 440 and 480 Hz tones
 
-class SimRing : public SimTransmitter
+class SimRing : public SimDualTransmitter
 {
 public:
     SimRing(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
     
-    virtual bool begin(unsigned long time) override;
     virtual bool update(Mode *mode) override;
     virtual bool step(unsigned long time) override;
-    virtual void end() override;
     
-    void realize();
+    void realize();  // Standard realize method expected by the system
+    
+    // Implement pure virtual methods from SimDualTransmitter
+    virtual void realize_dual_generators() override;
+    virtual bool begin_dual_generators(unsigned long time) override;
     
     // Debug method to display current tone pair
     void debug_print_tone_pair() const;
@@ -43,17 +45,9 @@ private:
     float _current_tone_b_offset;
     SignalMeter *_signal_meter;     // Pointer to signal meter for charge pulses
     
-#if defined(ENABLE_SECOND_GENERATOR) || defined(ENABLE_DUAL_GENERATOR)
-    // Second generator support - separate wave generator for testing/dual-tone
-    int _realizer_b;                // Second wave generator realizer ID
+    // Legacy compatibility variables for second generator tone offsets
     float _current_tone_a_offset_b; // Second generator's tone A frequency offset
     float _current_tone_b_offset_b; // Second generator's tone B frequency offset
-    
-    // Helper methods for second generator management
-    bool acquire_second_generator();
-    void release_second_generator();
-    void silence_second_generator();
-#endif
 };
 
 #endif
