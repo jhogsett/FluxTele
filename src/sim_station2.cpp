@@ -56,54 +56,40 @@ SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, 
 }
 
 bool SimStation2::begin(unsigned long time){
-    // For dual generator operation, we need BOTH generators to be successfully acquired
-    bool success_a = false, success_b = false, success_c = false;
+    // Attempt to acquire all required realizers atomically
+    // The new Realization::begin() handles dual generator coordination automatically
+    if(!common_begin(time, _fixed_freq)) {
+        return false;  // Failed to acquire all needed wave generators
+    }
+
+    // Initialize all acquired wave generators
+    int realizer_index = 0;
     
 #ifdef ENABLE_GENERATOR_A
-    success_a = common_begin(time, _fixed_freq);
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+        wavegen_a->set_frequency(SPACE_FREQUENCY2, false);
+    }
 #endif
+
 #ifdef ENABLE_GENERATOR_B
-    success_b = common_begin(time, _fixed_freq);  // Use shared _fixed_freq
+    int realizer_b = get_realizer(realizer_index++);
+    if(realizer_b != -1) {
+        WaveGen *wavegen_b = _wave_gen_pool->access_realizer(realizer_b);
+        wavegen_b->set_frequency(SPACE_FREQUENCY2, false);
+    }
 #endif
+
 #ifdef ENABLE_GENERATOR_C
-    success_c = common_begin(time, _fixed_freq);  // Use shared _fixed_freq
-#endif
-
-    // Both generators must succeed for dual generator operation
-#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
-    if(!success_a || !success_c) {
-        // If either fails, clean up any partial allocation and retry later
-        end();  // This will clean up both realizers
-        return false;
-    }
-#elif defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_B)
-    if(!success_a || !success_b) {
-        // If either fails, clean up any partial allocation and retry later
-        end();  // This will clean up both realizers
-        return false;
-    }
-#elif defined(ENABLE_GENERATOR_A)
-    if(!success_a) {
-        return false;
-    }
-#elif defined(ENABLE_GENERATOR_B)
-    if(!success_b) {
-        return false;
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    if(!success_c) {
-        return false;
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+        wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
     }
 #endif
 
-#ifdef ENABLE_GENERATOR_A
-    // Check if we have a valid realizer before accessing it
-    if(_realizer == -1) {
-        return false;
-    }
-
-    WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-    wavegen->set_frequency(SPACE_FREQUENCY2, false);    // Set _enabled and force frequency update with existing _vfo_freq
+    // Set enabled and force frequency update with existing _vfo_freq
     // _vfo_freq should retain its value from the previous cycle
     _enabled = true;
     force_frequency_update();
@@ -114,83 +100,42 @@ bool SimStation2::begin(unsigned long time){
     _in_wait_delay = false;
 
     return true;
-#endif
-#ifdef ENABLE_GENERATOR_B
-    // Check if we have a valid realizer before accessing it
-    if(_realizer == -1) {
-        return false;
-    }
-
-    WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
-    wavegen_b->set_frequency(SPACE_FREQUENCY2, false);    // Set _enabled and force frequency update with existing _vfo_freq
-    // _vfo_freq should retain its value from the previous cycle
-    _enabled = true;  // Use shared _enabled
-    force_frequency_update();
-    realize();  // CRITICAL: Set active state for audio output!
-
-    // Start first CQ immediately (after frequencies are set)
-    _morse.start_morse(_generated_message, _stored_wpm);
-    _in_wait_delay = false;
-
-    return true;
-#endif
-#ifdef ENABLE_GENERATOR_C
-    // Check if we have a valid realizer before accessing it
-    if(_realizer == -1) {
-        return false;
-    }
-
-    WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
-    wavegen_c->set_frequency(SPACE_FREQUENCY2, false);    // Set _enabled and force frequency update with existing _vfo_freq
-    // _vfo_freq should retain its value from the previous cycle
-    _enabled = true;
-    force_frequency_update();
-    realize();  // CRITICAL: Set active state for audio output!
-
-    // Start first CQ immediately (after frequencies are set)
-    _morse.start_morse(_generated_message, _stored_wpm);
-    _in_wait_delay = false;
-
-    return true;
-#endif
 }
 
 void SimStation2::realize(){
+    if(!has_all_realizers()) {
+        return;  // No WaveGens allocated
+    }
+
+    if(!check_frequency_bounds()) {
+        return;  // Out of audible range
+    }
+
+    // Set active state for all acquired wave generators
+    int realizer_index = 0;
+    
 #ifdef ENABLE_GENERATOR_A
-    if(_realizer == -1) {
-        return;  // No WaveGen allocated
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+        wavegen_a->set_active_frequency(_active);
     }
-
-    if(!check_frequency_bounds()) {
-        return;  // Out of audible range
-    }
-
-    WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-    wavegen->set_active_frequency(_active);
 #endif
+
 #ifdef ENABLE_GENERATOR_B
-    if(_realizer == -1) {
-        return;  // No WaveGen allocated
+    int realizer_b = get_realizer(realizer_index++);
+    if(realizer_b != -1) {
+        WaveGen *wavegen_b = _wave_gen_pool->access_realizer(realizer_b);
+        wavegen_b->set_active_frequency(_active);
     }
-
-    if(!check_frequency_bounds()) {
-        return;  // Out of audible range
-    }
-
-    WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
-    wavegen_b->set_active_frequency(_active);  // Use shared _active
 #endif
+
 #ifdef ENABLE_GENERATOR_C
-    if(_realizer == -1) {
-        return;  // No WaveGen allocated
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+        wavegen_c->set_active_frequency(_active);
     }
-
-    if(!check_frequency_bounds()) {
-        return;  // Out of audible range
-    }
-
-    WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
-    wavegen_c->set_active_frequency(_active);
 #endif
 }
 
@@ -198,31 +143,36 @@ void SimStation2::realize(){
 bool SimStation2::update(Mode *mode){
     common_frequency_update(mode);
 
+    if(_enabled && has_all_realizers()){
+        // Update frequencies for all acquired wave generators
+        int realizer_index = 0;
+        
 #ifdef ENABLE_GENERATOR_A
-    if(_enabled && _realizer != -1){
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-        wavegen->set_frequency(_frequency);
-    }
-
-    realize();
+        int realizer_a = get_realizer(realizer_index++);
+        if(realizer_a != -1){
+            WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+            wavegen_a->set_frequency(_frequency);
+        }
 #endif
+
 #ifdef ENABLE_GENERATOR_B
-    if(_enabled && _realizer != -1){
-        WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
-        wavegen_b->set_frequency(_frequency_b);
-    }
-
-    realize();
+        int realizer_b = get_realizer(realizer_index++);
+        if(realizer_b != -1){
+            WaveGen *wavegen_b = _wave_gen_pool->access_realizer(realizer_b);
+            wavegen_b->set_frequency(_frequency_b);
+        }
 #endif
+
 #ifdef ENABLE_GENERATOR_C
-    if(_enabled && _realizer != -1){
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
-        wavegen_c->set_frequency(_frequency_c);
+        int realizer_c = get_realizer(realizer_index++);
+        if(realizer_c != -1){
+            WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+            wavegen_c->set_frequency(_frequency_c);
+        }
+#endif
     }
 
     realize();
-#endif
-
     return true;
 }
 

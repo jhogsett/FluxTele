@@ -4,7 +4,15 @@
 #include "saved_data.h"  // For option_bfo_offset
 
 SimTransmitter2::SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq) 
-    : Realization(wave_gen_pool, (int)(fixed_freq / 1000))  // Pass frequency in kHz as station ID
+    : Realization(wave_gen_pool, (int)(fixed_freq / 1000), 
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
+        2  // Dual generator mode requires 2 realizers
+#elif defined(ENABLE_GENERATOR_A) || defined(ENABLE_GENERATOR_B) || defined(ENABLE_GENERATOR_C)
+        1  // Single generator mode requires 1 realizer
+#else
+        1  // Default fallback
+#endif
+    )
 {
     // Initialize shared station properties
     _fixed_freq = fixed_freq;
@@ -38,33 +46,30 @@ SimTransmitter2::SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq)
 
 bool SimTransmitter2::common_begin(unsigned long time, float fixed_freq)
 {
-#ifdef ENABLE_GENERATOR_A
+    // Set shared properties first
     _fixed_freq = fixed_freq;
-    _frequency = 0.0;
     
     // Update station ID for debugging (frequency in kHz)
     set_station_id((int)(fixed_freq / 1000));
     
-    return Realization::begin(time);
+    // Attempt to acquire all required realizers atomically
+    bool success = Realization::begin(time);
+    if(!success) {
+        return false;  // Failed to acquire all needed realizers
+    }
+    
+    // Initialize generator-specific variables
+#ifdef ENABLE_GENERATOR_A
+    _frequency = 0.0;
 #endif
 #ifdef ENABLE_GENERATOR_B
-    _fixed_freq = fixed_freq;  // Set shared _fixed_freq
     _frequency_b = 0.0;
-    
-    // Update station ID for debugging (frequency in kHz)
-    set_station_id((int)(fixed_freq / 1000));
-    
-    return Realization::begin(time);
 #endif
 #ifdef ENABLE_GENERATOR_C
-    _fixed_freq = fixed_freq;
     _frequency_c = 0.0;
-    
-    // Update station ID for debugging (frequency in kHz)
-    set_station_id((int)(fixed_freq / 1000));
-    
-    return Realization::begin(time);
 #endif
+    
+    return true;
 }
 
 void SimTransmitter2::common_frequency_update(Mode *mode)
@@ -106,64 +111,69 @@ void SimTransmitter2::common_frequency_update(Mode *mode)
 
 bool SimTransmitter2::check_frequency_bounds()
 {
+    // Check frequency bounds for all enabled generators
+    bool any_in_bounds = false;
+    
 #ifdef ENABLE_GENERATOR_A
     if(_frequency > MAX_AUDIBLE_FREQ2 || _frequency < MIN_AUDIBLE_FREQ2){
         if(_enabled){
             _enabled = false;
-
-            // Check if we have a valid realizer before accessing it
-            if(_realizer != -1) {
-                WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-                wavegen->set_frequency(SILENT_FREQ2, true);
-                wavegen->set_frequency(SILENT_FREQ2, false);
+            // Set all generators to silent frequency
+            for(int i = 0; i < get_realizer_count(); i++) {
+                int realizer = get_realizer(i);
+                if(realizer != -1) {
+                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
+                    wavegen->set_frequency(SILENT_FREQ2, true);
+                    wavegen->set_frequency(SILENT_FREQ2, false);
+                }
             }
         }
-        return false;  // Out of bounds
-    } 
-        
-    if(!_enabled){
-        _enabled = true;
+    } else {
+        any_in_bounds = true;
     }
-      return true;  // In bounds
 #endif
+
 #ifdef ENABLE_GENERATOR_B
     if(_frequency_b > MAX_AUDIBLE_FREQ2 || _frequency_b < MIN_AUDIBLE_FREQ2){
         if(_enabled){
-            _enabled = false;  // Use shared _enabled
-
-            // Check if we have a valid realizer before accessing it
-            if(_realizer != -1) {
-                WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer);
-                wavegen_b->set_frequency(SILENT_FREQ2);
+            _enabled = false;
+            // Set all generators to silent frequency  
+            for(int i = 0; i < get_realizer_count(); i++) {
+                int realizer = get_realizer(i);
+                if(realizer != -1) {
+                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
+                    wavegen->set_frequency(SILENT_FREQ2);
+                }
             }
         }
-        return false;  // Out of bounds
-    } 
-        
-    if(!_enabled){
-        _enabled = true;  // Use shared _enabled
+    } else {
+        any_in_bounds = true;
     }
-      return true;  // In bounds
 #endif
+
 #ifdef ENABLE_GENERATOR_C
     if(_frequency_c > MAX_AUDIBLE_FREQ2 || _frequency_c < MIN_AUDIBLE_FREQ2){
         if(_enabled){
             _enabled = false;
-
-            // Check if we have a valid realizer before accessing it
-            if(_realizer != -1) {
-                WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
-                wavegen_c->set_frequency(SILENT_FREQ2);
+            // Set all generators to silent frequency
+            for(int i = 0; i < get_realizer_count(); i++) {
+                int realizer = get_realizer(i);
+                if(realizer != -1) {
+                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
+                    wavegen->set_frequency(SILENT_FREQ2);
+                }
             }
         }
-        return false;  // Out of bounds
-    } 
-        
-    if(!_enabled){
+    } else {
+        any_in_bounds = true;
+    }
+#endif
+
+    if(any_in_bounds && !_enabled){
         _enabled = true;
     }
-      return true;  // In bounds
-#endif
+    
+    return any_in_bounds;
 }
 
 void SimTransmitter2::end()
@@ -329,8 +339,7 @@ bool SimTransmitter2::isActive() const {
 
 void SimTransmitter2::force_frequency_update()
 {
-#ifdef ENABLE_GENERATOR_A
-    // Immediately recalculate _frequency and update wave generator
+    // Immediately recalculate frequencies and update wave generators
     // This is used when _fixed_freq changes outside of the normal update() cycle
     // (e.g., frequency drift, dynamic station reallocation)
     // 
@@ -338,60 +347,46 @@ void SimTransmitter2::force_frequency_update()
     // the tuning knob, causing the audio to stay at the old frequency while the
     // signal meter correctly shows the new frequency (confusing behavior).
     //
-    // NOTE: This assumes the station currently holds a wave generator. When full
-    // dynamic pipelining is implemented (wave generators allocated/freed based on
-    // VFO proximity), this method should be made more defensive and frequency
-    // changes should be deferred until a generator is re-allocated.
-    if(_enabled && _realizer != -1) {
-        // Recalculate _frequency with current _fixed_freq and _vfo_freq
-        float raw_frequency = _vfo_freq - _fixed_freq;
-        _frequency = raw_frequency + option_bfo_offset;
-          // Update the wave generator with the new frequency
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
+    // NOTE: This assumes the station currently holds all needed wave generators.
+    
+    if(!_enabled || !has_all_realizers()) {
+        return;  // Skip if not enabled or missing realizers
+    }
+    
+    int realizer_index = 0;  // Track which realizer to use
+    
+#ifdef ENABLE_GENERATOR_A
+    // Update Generator A
+    float raw_frequency = _vfo_freq - _fixed_freq;
+    _frequency = raw_frequency + option_bfo_offset;
+    
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
         wavegen->set_frequency(_frequency);
     }
 #endif
+
 #ifdef ENABLE_GENERATOR_B
-    // Immediately recalculate _frequency and update wave generator
-    // This is used when _fixed_freq changes outside of the normal update() cycle
-    // (e.g., frequency drift, dynamic station reallocation)
-    // 
-    // Without this, frequency changes would only take effect when the user turns
-    // the tuning knob, causing the audio to stay at the old frequency while the
-    // signal meter correctly shows the new frequency (confusing behavior).
-    //
-    // NOTE: This assumes the station currently holds a wave generator. When full
-    // dynamic pipelining is implemented (wave generators allocated/freed based on
-    // VFO proximity), this method should be made more defensive and frequency
-    // changes should be deferred until a generator is re-allocated.
-    if(_enabled && _realizer != -1) {
-        // Recalculate _frequency with current _fixed_freq and _vfo_freq
-        float raw_frequency_b = _vfo_freq - _fixed_freq;  // Use shared _fixed_freq
-        _frequency_b = raw_frequency_b + option_bfo_offset;
-          // Update the wave generator with the new frequency
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
+    // Update Generator B
+    float raw_frequency_b = _vfo_freq - _fixed_freq;
+    _frequency_b = raw_frequency_b + option_bfo_offset;
+    
+    int realizer_b = get_realizer(realizer_index++);
+    if(realizer_b != -1) {
+        WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_b);
         wavegen->set_frequency(_frequency_b);
     }
 #endif
+
 #ifdef ENABLE_GENERATOR_C
-    // Immediately recalculate _frequency and update wave generator
-    // This is used when _fixed_freq changes outside of the normal update() cycle
-    // (e.g., frequency drift, dynamic station reallocation)
-    // 
-    // Without this, frequency changes would only take effect when the user turns
-    // the tuning knob, causing the audio to stay at the old frequency while the
-    // signal meter correctly shows the new frequency (confusing behavior).
-    //
-    // NOTE: This assumes the station currently holds a wave generator. When full
-    // dynamic pipelining is implemented (wave generators allocated/freed based on
-    // VFO proximity), this method should be made more defensive and frequency
-    // changes should be deferred until a generator is re-allocated.
-    if(_enabled && _realizer != -1) {
-        // Recalculate _frequency with current _fixed_freq and _vfo_freq
-        float raw_frequency_c = _vfo_freq - _fixed_freq;
-        _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
-          // Update the wave generator with the new frequency
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
+    // Update Generator C (with test offset)
+    float raw_frequency_c = _vfo_freq - _fixed_freq;
+    _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
         wavegen_c->set_frequency(_frequency_c);
     }
 #endif
