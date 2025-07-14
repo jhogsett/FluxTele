@@ -8,10 +8,10 @@
 // ##DATA Increment the save data version to force upgraded devices to auto-reset after programming
 // Current save data version
 // On start-up if this differs from the EEPROM value, the data is reset to defaults
-#define SAVE_DATA_VERSION 3   // Incremented for flashlight option addition
+#define SAVE_DATA_VERSION 4   // Incremented for setting BFO to 0Hz by default
 
 #define DEFAULT_CONTRAST 2
-#define DEFAULT_BFO_OFFSET 700   // 700 Hz default BFO offset for comfortable audio tuning
+#define DEFAULT_BFO_OFFSET 0   // 700 Hz default BFO offset for comfortable audio tuning
 #define DEFAULT_FLASHLIGHT 0     // Flashlight starts at 0 (off)
 
 // the longest possible count of milliseconds

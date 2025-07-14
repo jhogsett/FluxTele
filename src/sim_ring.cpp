@@ -77,6 +77,23 @@ bool SimRing::begin(unsigned long time)
     Serial.print("Second generator realizer: ");
     Serial.println(_realizer_b);
     
+    // DEBUG: Show the ring frequencies that will be used
+    Serial.print("Ring Tone A frequency offset: ");
+    Serial.print(_current_tone_a_offset);
+    Serial.println(" Hz");
+    Serial.print("Ring Tone B frequency offset: ");
+    Serial.print(_current_tone_b_offset);
+    Serial.println(" Hz");
+    Serial.print("Base station frequency: ");
+    Serial.print(_fixed_freq);
+    Serial.println(" Hz");
+    Serial.print("Final Ring Tone A frequency: ");
+    Serial.print(_fixed_freq + _current_tone_a_offset);
+    Serial.println(" Hz");
+    Serial.print("Final Ring Tone B frequency: ");
+    Serial.print(_fixed_freq + _current_tone_b_offset);
+    Serial.println(" Hz");
+    
     // Start ring transmission with repeat enabled
     _telco.start_telco_transmission(true);
 
@@ -98,9 +115,23 @@ bool SimRing::begin(unsigned long time)
 
 void SimRing::realize()
 {
+    Serial.print("REALIZE DEBUG: _frequency = ");
+    Serial.println(_frequency);
+    Serial.print("REALIZE DEBUG: _fixed_freq = ");
+    Serial.println(_fixed_freq);
+    Serial.print("REALIZE DEBUG: tone offsets = ");
+    Serial.print(_current_tone_a_offset);
+    Serial.print(" / ");
+    Serial.println(_current_tone_b_offset);
+    
     if(!check_frequency_bounds()) {
+        Serial.println("REALIZE DEBUG: check_frequency_bounds() FAILED - exiting early");
+        Serial.print("REALIZE DEBUG: Computed frequency was: ");
+        Serial.println(_frequency);
         return;  // Out of audible range
     }
+    
+    Serial.println("REALIZE DEBUG: check_frequency_bounds() PASSED - continuing");
     
 #ifdef ENABLE_FIRST_GENERATOR
     // FIRST GENERATOR ONLY MODE
@@ -191,23 +222,37 @@ void SimRing::realize()
         // Set frequencies for BOTH generators based on current ring state
         switch(_telco.get_current_state()) {
             case TELCO_STATE_TONE_A:
-                // FIRST GENERATOR: Transmit Tone A
-                wavegen->set_frequency(_frequency + _current_tone_a_offset, true);
-                wavegen->set_frequency(_frequency + _current_tone_a_offset, false);
+                // TELEPHONE RING: Proper frequency calculation (VFO + BFO + tone offset)
+                float freq1 = _frequency + _current_tone_a_offset;  // Should be BFO + 440 Hz
+                Serial.print("Gen1 calculated: ");
+                Serial.print(_frequency);
+                Serial.print(" + ");
+                Serial.print(_current_tone_a_offset);
+                Serial.print(" = ");
+                Serial.println(freq1);
+                wavegen->set_frequency(freq1, true);
+                wavegen->set_frequency(freq1, false);
                 
-                // SECOND GENERATOR: Transmit its own Tone A (different frequency)
-                wavegen_b->set_frequency(_frequency + _current_tone_a_offset_b, true);
-                wavegen_b->set_frequency(_frequency + _current_tone_a_offset_b, false);
+                // SECOND GENERATOR: Proper frequency calculation  
+                float freq2 = _frequency + _current_tone_b_offset;  // Should be BFO + 480 Hz
+                Serial.print("Gen2 calculated: ");
+                Serial.print(_frequency);
+                Serial.print(" + ");
+                Serial.print(_current_tone_b_offset);
+                Serial.print(" = ");
+                Serial.println(freq2);
+                wavegen_b->set_frequency(freq2, true);
+                wavegen_b->set_frequency(freq2, false);
                 break;
                 
             case TELCO_STATE_TONE_B:
-                // FIRST GENERATOR: Transmit Tone B
+                // FIRST GENERATOR: Transmit Tone B (should not happen in ring mode)
                 wavegen->set_frequency(_frequency + _current_tone_b_offset, true);
                 wavegen->set_frequency(_frequency + _current_tone_b_offset, false);
                 
-                // SECOND GENERATOR: Transmit its own Tone B (different frequency)
-                wavegen_b->set_frequency(_frequency + _current_tone_b_offset_b, true);
-                wavegen_b->set_frequency(_frequency + _current_tone_b_offset_b, false);
+                // SECOND GENERATOR: Also Tone B (should not happen in ring mode)
+                wavegen_b->set_frequency(_frequency + _current_tone_b_offset, true);
+                wavegen_b->set_frequency(_frequency + _current_tone_b_offset, false);
                 break;
                   default:
                 // Silent state for both generators
@@ -377,17 +422,15 @@ bool SimRing::step(unsigned long time)
 void SimRing::generate_new_tone_pair()
 {
     // Fixed North American telephone ring frequencies
-    // Tone A: 440 Hz (primary ring tone)
-    // Tone B: Disabled for simple ring cadence
+    // For dual-tone ring: Generator 1 = 440 Hz, Generator 2 = 480 Hz
     
-    _current_tone_a_offset = RING_TONE_LOW_OFFSET;  // Fixed 440 Hz
-    _current_tone_b_offset = 0;  // Tone B disabled for telephone ring
+    _current_tone_a_offset = RING_TONE_LOW_OFFSET;   // Generator 1: 440 Hz
+    _current_tone_b_offset = RING_TONE_HIGH_OFFSET;  // Generator 2: 480 Hz
 
 #if defined(ENABLE_SECOND_GENERATOR) || defined(ENABLE_DUAL_GENERATOR)
-    // Second generator uses 480 Hz for dual-tone ring (eventually)
-    // For now, just use the same 440 Hz
-    _current_tone_a_offset_b = RING_TONE_LOW_OFFSET;  // Also 440 Hz for now
-    _current_tone_b_offset_b = 0;  // Also disabled
+    // For compatibility - not currently used in dual generator mode
+    _current_tone_a_offset_b = RING_TONE_HIGH_OFFSET;  // 480 Hz 
+    _current_tone_b_offset_b = 0;  // Unused
 #endif
 }
 
