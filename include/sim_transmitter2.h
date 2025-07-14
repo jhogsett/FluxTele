@@ -4,7 +4,7 @@
 // Wave generator selection for dual generator development
 #define ENABLE_GENERATOR_A  // Enable by default
 // #define ENABLE_GENERATOR_B  // Enable for dual generator testing
-#define ENABLE_GENERATOR_C  // Enable for duplication testing
+// #define ENABLE_GENERATOR_C  // Enable for duplication testing
 
 // Test configuration: Offset Generator C by a small amount for verification
 #define GENERATOR_C_TEST_OFFSET 100.0  // Hz offset for testing dual generator operation

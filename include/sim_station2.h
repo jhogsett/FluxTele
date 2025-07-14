@@ -5,7 +5,6 @@
 #define ENABLE_GENERATOR_A  // Enable by default
 // #define ENABLE_GENERATOR_B  // Enable for dual generator testing
 // #define ENABLE_GENERATOR_C  // Enable for duplication testing
-#define ENABLE_GENERATOR_C  // Enable for duplication testing
 
 #include "async_morse.h"
 #include "sim_transmitter2.h"
