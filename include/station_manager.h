@@ -19,6 +19,8 @@
 #define MAX_STATIONS 3
 #elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE) || defined(CONFIG_PAGER2_TEST)
 #define MAX_STATIONS 1
+#elif defined(CONFIG_SIMSTATION2_TEST)
+#define MAX_STATIONS 2
 #else
 #define MAX_STATIONS 4  // Default fallback
 #endif
@@ -26,7 +28,7 @@
 #define MAX_AD9833 4
 
 // Debug control - disabled for production
-// #define DEBUG_PIPELINING  // Enable for troubleshooting pipelining issues
+#define DEBUG_PIPELINING  // Enable for troubleshooting pipelining issues
 
 // Dynamic pipelining configuration
 #define PIPELINE_LOOKAHEAD_RANGE 8000    // 8 kHz ahead/behind VFO - accommodate 7.2 kHz station placement

@@ -477,14 +477,17 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 
 #ifdef CONFIG_SIMSTATION2_TEST
 // TEST: Single SimStation2 station for testing duplicate class functionality
-SimStation2 cw_station2_test(&wave_gen_pool, &signal_meter, 55500000.0, 15);  // 15 WPM at 55.5 MHz
+SimStation2 cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, 15);  // 15 WPM at 55.5 MHz
+SimStation2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, 15);  // 15 WPM at 55.5 MHz
 
-SimTransmitter2 *station_pool[1] = {  // Only 1 entry for test config - NOTE: SimTransmitter2* not SimTransmitter*
-    &cw_station2_test
+SimTransmitter2 *station_pool[2] = {  // Only 1 entry for test config - NOTE: SimTransmitter2* not SimTransmitter*
+    &cw_station2_test1,
+    &cw_station2_test2
 };
 
-Realization *realizations[1] = {  // Only 1 entry for test config
-    &cw_station2_test
+Realization *realizations[2] = {  // Only 1 entry for test config
+	&cw_station2_test1,
+	&cw_station2_test2
 };
 #endif
 
@@ -599,7 +602,7 @@ Realization *realizations[1] = {
 #ifdef CONFIG_MINIMAL_CW
 bool realization_stats[1] = {false};
 #elif defined(CONFIG_SIMSTATION2_TEST)
-bool realization_stats[1] = {false};  // Single SimStation2 test station
+bool realization_stats[2] = {false, false};  // Single SimStation2 test station
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -621,7 +624,7 @@ bool realization_stats[4] = {false, false, false, false};
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_SIMSTATION2_TEST)
-RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
+RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_PAGER2_TEST)
@@ -648,7 +651,7 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 #ifdef CONFIG_MINIMAL_CW
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_SIMSTATION2_TEST)
-StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
+StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_PAGER2_TEST)
