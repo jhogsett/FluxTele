@@ -35,6 +35,18 @@
 #include "sim_station.h"
 #endif
 
+#ifdef ENABLE_SIMSTATION2_TEST
+#include "sim_station2.h"
+#endif
+
+#ifdef ENABLE_EXCHANGE_STATION
+#include "sim_exchange.h"
+#endif
+
+#ifdef ENABLE_RING_STATION
+#include "sim_ring.h"
+#endif
+
 #ifdef ENABLE_NUMBERS_STATION
 #include "sim_numbers.h"
 #endif
@@ -153,16 +165,19 @@ SignalMeter signal_meter;
 // ============================================================================
 
 #ifdef CONFIG_MIXED_STATIONS
-// Testing: CW + CW + SimPager2 (dual wave generator) to maintain 3 stations for stability
+// Testing: CW + CW + SimPager2 (dual wave generator) for telephony baseline
 #ifdef ENABLE_MORSE_STATION
-SimStation cw_station1(&wave_gen_pool, &signal_meter, 5550010.0, 8);   // SLOW: 8 WPM to hold generators longer
-SimStation cw_station2(&wave_gen_pool, &signal_meter, 5550020.0, 8);   // SLOW: 8 WPM to hold generators longer
+SimStation cw_station1(&wave_gen_pool, &signal_meter, 55504000.0, 15);   // 15 WPM, proper spacing
+SimStation cw_station2(&wave_gen_pool, &signal_meter, 55505000.0, 18);   // 18 WPM, 5 kHz spacing for pipelining
+#endif
+#ifdef ENABLE_EXCHANGE_STATION
+SimExchange exchange_station1(&wave_gen_pool, &signal_meter, 55600400.0, EXCHANGE_DIAL_TONE);  // Will be randomized in setup
 #endif
 #ifdef ENABLE_NUMBERS_STATION
-SimNumbers numbers_station1(&wave_gen_pool, &signal_meter, 7002700.0, 18);
+SimNumbers numbers_station1(&wave_gen_pool, &signal_meter, 55500200, 18);
 #endif
 #ifdef ENABLE_RTTY_STATION
-SimRTTY rtty_station1(&wave_gen_pool, &signal_meter, 14004100.0);
+SimRTTY rtty_station1(&wave_gen_pool, &signal_meter, 55500300.0);
 #endif
 #ifdef ENABLE_JAMMER_STATION
 SimJammer jammer_station1(&wave_gen_pool);
@@ -171,33 +186,37 @@ SimJammer jammer_station1(&wave_gen_pool);
 SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 #endif
 
-#ifdef ENABLE_PAGER2_STATION
-SimPager2 pager2_station1(&wave_gen_pool, &signal_meter, 5550000.0);  // Testing dual wave generator - moved well above other stations
+#ifdef ENABLE_RING_STATION
+SimRing ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
 #endif
 
 // FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
 // All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
 Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual station count! ***
-                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimPager2)
+                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRing)
                               // Update array size when changing station configurations!
+
 #ifdef ENABLE_MORSE_STATION
     &cw_station1,
     &cw_station2,  // Restored: Second CW station
 #endif
+#ifdef ENABLE_EXCHANGE_STATION
+    &exchange_station1,  // Telephone exchange simulator (replaces SimPager2)
+#endif
+#ifdef ENABLE_RING_STATION
+    &ring_station1  // Simple telephone ring simulator
+#endif
 #ifdef ENABLE_NUMBERS_STATION
-    &numbers_station1,  // SHOULD BE DISABLED per station_config.h
+    &numbers_station1,  // DISABLED per station_config.h
 #endif
 #ifdef ENABLE_RTTY_STATION
-    // &rtty_station1,  // Replaced with SimPager2
+    &rtty_station1   // DISABLED per station_config.h
 #endif
 #ifdef ENABLE_JAMMER_STATION
     &jammer_station1,
 #endif
 #ifdef ENABLE_PAGER_STATION
     &pager_station1
-#endif
-#ifdef ENABLE_PAGER2_STATION
-    &pager2_station1  // Testing dual wave generator instead of RTTY
 #endif
 };
 #endif
@@ -445,7 +464,7 @@ Realization *realizations[4] = {
 //  80 = High fist quality (current Field Day "tired operator" setting)
 // 255 = Maximum bad fist (extreme case)
 
-SimStation cw_station1(&wave_gen_pool, &signal_meter, 7006000.0, 25, (byte)255);  // Field Day Station test: MAXIMUM fist quality for testing - CAST TO BYTE!
+SimStation cw_station1(&wave_gen_pool, &signal_meter, 55500000.0, 25, (byte)255);  // Field Day Station test: MAXIMUM fist quality for testing - CAST TO BYTE!
 
 SimTransmitter *station_pool[1] = {  // Only 1 entry for minimal config
     &cw_station1
@@ -453,6 +472,22 @@ SimTransmitter *station_pool[1] = {  // Only 1 entry for minimal config
 
 Realization *realizations[1] = {  // Only 1 entry for minimal config
     &cw_station1
+};
+#endif
+
+#ifdef CONFIG_SIMSTATION2_TEST
+// TEST: Single SimStation2 station for testing duplicate class functionality
+SimStation2 cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, 15);  // 15 WPM at 55.5 MHz
+SimStation2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, 15);  // 15 WPM at 55.5 MHz
+
+SimTransmitter2 *station_pool[2] = {  // Only 1 entry for test config - NOTE: SimTransmitter2* not SimTransmitter*
+    &cw_station2_test1,
+    &cw_station2_test2
+};
+
+Realization *realizations[2] = {  // Only 1 entry for test config
+	&cw_station2_test1,
+	&cw_station2_test2
 };
 #endif
 
@@ -547,15 +582,15 @@ Realization *realizations[1] = {
 #endif
 
 #ifdef CONFIG_PAGER2_TEST
-// Test config with original SimPager to isolate if issue is config or SimPager2 class
-SimPager pager_test(&wave_gen_pool, &signal_meter, 146800000.0);  // 2 meter pager frequency
+// Test config with SimPager2 to test dual generator functionality
+SimPager2 pager2_test(&wave_gen_pool, &signal_meter, 55500000.0);  // Test frequency with good offset
 
 SimTransmitter *station_pool[1] = {
-    &pager_test
+    &pager2_test
 };
 
 Realization *realizations[1] = {
-    &pager_test
+    &pager2_test
 };
 #endif
 
@@ -566,6 +601,8 @@ Realization *realizations[1] = {
 // Realization status array - sized based on configuration
 #ifdef CONFIG_MINIMAL_CW
 bool realization_stats[1] = {false};
+#elif defined(CONFIG_SIMSTATION2_TEST)
+bool realization_stats[2] = {false, false};  // Single SimStation2 test station
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -579,13 +616,15 @@ bool realization_stats[21] = {false, false, false, false, false, false, false, f
 #elif defined(CONFIG_FILE_PILE_UP)
 bool realization_stats[3] = {false, false, false};  // 3 stations for pile-up debug
 #elif defined(CONFIG_MIXED_STATIONS)
-bool realization_stats[3] = {false, false, false};  // Original 3-station configuration (CW1 + CW2 + SimPager2)
+bool realization_stats[3] = {false, false, false};  // 3 stations for MIXED (CW1 + CW2 + SimPager2)
 #else
 bool realization_stats[4] = {false, false, false, false};
 #endif
 
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_SIMSTATION2_TEST)
+RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_PAGER2_TEST)
@@ -608,7 +647,32 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 // STATION MANAGER - Initialize with shared realizations array (FluxTune optimization)
 // Memory savings: Eliminates duplicate station_pool[] array via inheritance casting
 // ============================================================================
+
+#ifdef CONFIG_MINIMAL_CW
+StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
+#elif defined(CONFIG_SIMSTATION2_TEST)
+StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+#elif defined(CONFIG_TEST_PERFORMANCE)
+StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
+#elif defined(CONFIG_PAGER2_TEST)
+StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
+#elif defined(CONFIG_DEV_LOW_RAM)
 StationManager station_manager(realizations, 3);  // Use optimized constructor with shared array
+#elif defined(CONFIG_FIVE_CW_RESOURCE_TEST)
+StationManager station_manager(realizations, 5);  // Use optimized constructor with shared array
+#elif defined(CONFIG_TEN_CW)
+StationManager station_manager(realizations, 21);  // Use optimized constructor with shared array
+#elif defined(CONFIG_FILE_PILE_UP)
+StationManager station_manager(realizations, 3);  // Use optimized constructor with shared array
+#elif defined(CONFIG_MIXED_STATIONS)
+StationManager station_manager(realizations, 3);  // Use optimized constructor with shared array
+#else
+StationManager station_manager(realizations, 4);  // Use optimized constructor with shared array
+#endif
+
+// Timer for periodic exchange signal randomization (authentic telephony behavior)
+unsigned long last_exchange_randomization = 0;
+const unsigned long EXCHANGE_RANDOMIZE_INTERVAL = 30000;  // 30 seconds between signal changes
 
 // DEBUG: Station count verification (updated for FluxTune shared array optimization)
 void debug_station_pool_state() {
@@ -633,9 +697,9 @@ void debug_station_pool_state() {
     Serial.println("=== END STATION DEBUG ===");
 }
 
-VFO vfoa("EXC A",   5550000.0, 1, &realization_pool);
-VFO vfob("EXC B",   9990000.0, 1, &realization_pool);
-VFO vfoc("EXC C",2015550000.0, 1, &realization_pool);
+VFO vfoa("EXC A", 55500000.0, 10, &realization_pool);
+VFO vfob("EXC B", 99900000.0, 10, &realization_pool);
+VFO vfoc("EXC C", 11100000.0, 1, &realization_pool);
 
 Contrast contrast("Contrast");
 BFO bfo("Offset");
@@ -730,8 +794,14 @@ void setup(){
 	AD4.setMode(MD_AD9833::MODE_SINE);
 
 	// Initialize StationManager with dynamic pipelining
+#ifdef CONFIG_PAGER2_TEST
+	// For simple single-station testing, disable dynamic pipelining
+	// This ensures the station starts immediately without requiring tuning knob interaction
+	station_manager.enableDynamicPipelining(false);
+#else
 	station_manager.enableDynamicPipelining(true);
-	station_manager.setupPipeline(7000000); // Start with VFO A frequency
+	station_manager.setupPipeline(55500000); // Start with VFO A frequency (55.5 MHz)
+#endif
 	
 	// DEBUG: Check for station pool array bounds bug
 	debug_station_pool_state();
@@ -855,7 +925,37 @@ void loop()
 	// ============================================================================
 	
 #ifdef CONFIG_MIXED_STATIONS
-	// Initialize SimPager2 FIRST to test dual generator acquisition without resource pressure
+	// Initialize SimExchange FIRST to test dual generator acquisition for telephony signals
+// #ifdef ENABLE_EXCHANGE_STATION
+// 	exchange_station1.randomize();  // Choose random telephony signal type
+// 	exchange_station1.begin(time + random(1000));  // Start FIRST to test dual acquisition
+// 	exchange_station1.set_station_state(AUDIBLE);
+	
+// 	// DEBUG: Test dual generator acquisition capability for telephony
+// 	delay(1000);  // Wait for initialization to settle
+// 	exchange_station1.debug_print_signal_info();
+// #endif
+
+	// Initialize SimRing SECOND to test dual generator acquisition for ring signals
+#ifdef ENABLE_RING_STATION
+	ring_station1.begin(time + random(2000));  // Start after SimExchange
+	ring_station1.set_station_state(AUDIBLE);
+	
+	// DEBUG: Test dual generator acquisition capability for ring
+	delay(1000);  // Wait for initialization to settle
+	ring_station1.debug_print_tone_pair();
+#endif
+
+	// Initialize CW stations AFTER telephony stations have claimed their dual generators
+#ifdef ENABLE_MORSE_STATION
+	cw_station1.begin(time + random(3000));  // Start after telephony stations
+	cw_station1.set_station_state(AUDIBLE);
+	
+	cw_station2.begin(time + random(4000));  // Start after telephony stations
+	cw_station2.set_station_state(AUDIBLE);
+#endif
+
+	// Legacy SimPager2 initialization (disabled in favor of SimExchange)
 #ifdef ENABLE_PAGER2_STATION
 	pager2_station1.begin(time + random(1000));  // Start FIRST to test dual acquisition
 	pager2_station1.set_station_state(AUDIBLE);
@@ -863,15 +963,6 @@ void loop()
 	// DEBUG: Test dual generator acquisition capability
 	delay(2000);  // Wait for initialization to settle
 	pager2_station1.debug_test_dual_generator_acquisition();
-#endif
-
-	// Initialize CW stations AFTER SimPager2 has claimed its dual generators
-#ifdef ENABLE_MORSE_STATION
-	cw_station1.begin(time + random(3000));  // Start after SimPager2
-	cw_station1.set_station_state(AUDIBLE);
-	
-	cw_station2.begin(time + random(4000));  // Start after SimPager2
-	cw_station2.set_station_state(AUDIBLE);
 #endif
 #endif
 
@@ -1131,9 +1222,13 @@ void loop()
 #endif
 
 #ifdef CONFIG_PAGER2_TEST
-	// Initialize original SimPager test station to isolate issue
-	pager_test.begin(time + random(1000));
-	pager_test.set_station_state(AUDIBLE);
+	// Initialize SimPager2 test station to test dual wave generator functionality
+	pager2_test.begin(time + random(1000));
+	pager2_test.set_station_state(AUDIBLE);
+	
+	// DEBUG: Test dual generator acquisition capability
+	delay(2000);  // Wait for initialization to settle
+	pager2_test.debug_test_dual_generator_acquisition();
 #endif
 	set_application(APP_SIMRADIO, &display);
 
@@ -1153,6 +1248,19 @@ void loop()
 				station_manager.updateStations(current_vfo->_frequency);
 			}
 		}
+		
+		// Periodic exchange signal randomization for realistic telephony behavior
+#ifdef CONFIG_MIXED_STATIONS
+// #ifdef ENABLE_EXCHANGE_STATION
+// 		if (millis() - last_exchange_randomization > EXCHANGE_RANDOMIZE_INTERVAL) {
+// 			exchange_station1.randomize();
+// 			last_exchange_randomization = millis();
+// 			Serial.print("SimExchange: Periodic randomization at ");
+// 			Serial.print(millis());
+// 			Serial.println(" ms");
+// 		}
+// #endif
+#endif
 
 #ifdef CONFIG_TEST_PERFORMANCE
 		// Test station runs automatically - just listen to the audio output

@@ -1,6 +1,7 @@
 #ifndef STATION_MANAGER_H
 #define STATION_MANAGER_H
 
+#include "station_config.h"  // CRITICAL: Must include config macros BEFORE using them
 #include "sim_transmitter.h"
 #include "realization.h"
 #include <stdint.h>
@@ -9,15 +10,17 @@
 #ifdef CONFIG_TEN_CW
 #define MAX_STATIONS 21
 #elif defined(CONFIG_MIXED_STATIONS)
-#define MAX_STATIONS 3  // Updated to match actual station count
+#define MAX_STATIONS 3  // Updated to match actual station count (CW1 + CW2 + SimPager2)
 #elif defined(CONFIG_FIVE_CW) || defined(CONFIG_FIVE_CW_RESOURCE_TEST)
 #define MAX_STATIONS 5
 #elif defined(CONFIG_FOUR_CW) || defined(CONFIG_FOUR_NUMBERS) || defined(CONFIG_FOUR_PAGER) || defined(CONFIG_FOUR_RTTY) || defined(CONFIG_FOUR_JAMMER) || defined(CONFIG_CW_CLUSTER)
 #define MAX_STATIONS 4
 #elif defined(CONFIG_DEV_LOW_RAM) || defined(CONFIG_FILE_PILE_UP)
 #define MAX_STATIONS 3
-#elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE)
+#elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE) || defined(CONFIG_PAGER2_TEST)
 #define MAX_STATIONS 1
+#elif defined(CONFIG_SIMSTATION2_TEST)
+#define MAX_STATIONS 2
 #else
 #define MAX_STATIONS 4  // Default fallback
 #endif

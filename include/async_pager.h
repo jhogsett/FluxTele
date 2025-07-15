@@ -3,13 +3,14 @@
 
 #include <Arduino.h>
 
-// Pager timing constants (in milliseconds) - authentic two-tone sequential timing
-// Based on industry standards from Genave/Motorola Quick Call specifications
-#define PAGER_TONE_A_DURATION 1000    // First tone: 1.0 seconds (standard duration)
-#define PAGER_TONE_B_DURATION 3000    // Second tone: 3.0 seconds (standard duration)
+// Ring/Pager timing constants (in milliseconds)
+// SimRing: North American telephone ring cadence (2 seconds on, 4 seconds off)
+// SimPager: Authentic two-tone sequential timing (Genave/Motorola Quick Call)
+#define PAGER_TONE_A_DURATION 2000    // Ring ON: 2.0 seconds (North American standard)
+#define PAGER_TONE_B_DURATION 0       // Ring: Skip TONE B entirely (set to 0)
 #define PAGER_INTER_TONE_GAP 0        // No gap between tones in authentic systems
-#define PAGER_SILENCE_MIN 3000        // Minimum 3 seconds silence
-#define PAGER_SILENCE_MAX 6000        // Maximum 6 seconds silence (reduced for more frequent paging)
+#define PAGER_SILENCE_MIN 4000        // Ring OFF: 4.0 seconds (North American standard)
+#define PAGER_SILENCE_MAX 4000        // Ring OFF: Fixed 4.0 seconds (no randomization for rings)
 
 // Pager step return values
 #define STEP_PAGER_TURN_ON   1        // Start transmitting (tone A or B)

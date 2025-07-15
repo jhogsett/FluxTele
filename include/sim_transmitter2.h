@@ -1,5 +1,12 @@
-#ifndef __SIM_TRANSMITTER_H__
-#define __SIM_TRANSMITTER_H__
+#ifndef __SIM_TRANSMITTER2_H__
+#define __SIM_TRANSMITTER2_H__
+
+// Wave generator selection for dual generator development
+#define ENABLE_GENERATOR_A  // Enable by default
+#define ENABLE_GENERATOR_C  // Enable for duplication testing
+
+// Test configuration: Offset Generator C by a small amount for verification
+#define GENERATOR_C_TEST_OFFSET 100.0  // Hz offset for testing dual generator operation
 
 #include "signal_meter.h"
 #include "vfo.h"
@@ -7,17 +14,17 @@
 #include "wave_gen_pool.h"
 
 // Station states for dynamic station management
-enum StationState {
-    DORMANT,     // No frequency assigned, minimal memory usage
-    ACTIVE,      // Frequency assigned, tracking VFO proximity  
-    AUDIBLE,     // Active + has AD9833 generator assigned
-    SILENT       // Active but no AD9833 (>4 stations in range)
+enum StationState2 {
+    DORMANT2,     // No frequency assigned, minimal memory usage
+    ACTIVE2,      // Frequency assigned, tracking VFO proximity  
+    AUDIBLE2,     // Active + has AD9833 generator assigned
+    SILENT2       // Active but no AD9833 (>4 stations in range)
 };
 
 // Common constants for simulated transmitters
-#define MAX_AUDIBLE_FREQ 5000.0
-#define MIN_AUDIBLE_FREQ -700.0   // FluxTele: No BFO required for telephony, allows full radio tuning range
-#define SILENT_FREQ 0.1
+#define MAX_AUDIBLE_FREQ2 5000.0
+#define MIN_AUDIBLE_FREQ2 -700.0   // FluxTele: No BFO required for telephony, allows full radio tuning range
+#define SILENT_FREQ2 0.1
 
 /*
  * FLUXTELE FREQUENCY ARCHITECTURE EXPLANATION:
@@ -46,11 +53,11 @@ enum StationState {
 // #define BFO_OFFSET 700.0   // Replaced by dynamic option_bfo_offset
 
 /**
- * Base class for simulated transmitters (CW/RTTY).
+ * Base class for simulated transmitters (CW/RTTY) - Duplicate class for testing.
  * Provides common functionality and interface for station simulation.
  *
  * INHERITANCE CONTRACT: All concrete station classes MUST inherit from both:
- * - SimTransmitter (for StationManager compatibility)  
+ * - SimTransmitter2 (for StationManager compatibility)  
  * - Realization (for RealizationPool compatibility)
  * This dual inheritance enables zero-copy array sharing between managers.
  *
@@ -59,10 +66,10 @@ enum StationState {
  * frequencies or reallocated to different wave generators. The pattern end() followed
  * by begin() properly reinitializes the station with any frequency changes.
  */
-class SimTransmitter : public Realization
+class SimTransmitter2 : public Realization
 {
 public:
-    SimTransmitter(WaveGenPool *wave_gen_pool, float fixed_freq = 0.0);
+    SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq = 0.0);
     
     virtual bool step(unsigned long time) = 0;  // Pure virtual - must be implemented by derived classes
     virtual void end();  // Common cleanup logic
@@ -71,8 +78,8 @@ public:
     // Dynamic station management methods
     virtual bool reinitialize(unsigned long time, float fixed_freq);  // Reinitialize with new frequency
     virtual void randomize();  // Re-randomize station properties (callsign, WPM, etc.) - default implementation does nothing
-    void set_station_state(StationState new_state);  // Change station state
-    StationState get_station_state() const;  // Get current station state
+    void set_station_state(StationState2 new_state);  // Change station state
+    StationState2 get_station_state() const;  // Get current station state
     bool is_audible() const;  // True if station has AD9833 generator assigned
     float get_fixed_frequency() const;  // Get station's target frequency
     void setActive(bool active);
@@ -82,31 +89,42 @@ protected:    // Common utility methods
     bool check_frequency_bounds();  // Returns true if frequency is in audible range
     bool common_begin(unsigned long time, float fixed_freq);  // Common initialization logic
     void common_frequency_update(Mode *mode);  // Common frequency calculation (mode must be VFO)
-    void force_frequency_update();  // Immediately update wave generator after _fixed_freq changes// Common member variables
-    float _fixed_freq;  // Target frequency for this station
-    bool _enabled;      // True when frequency is in audible range
+    void force_frequency_update();  // Immediately update wave generator after _fixed_freq changes
+
+    // Shared station properties (independent of wave generator)
+    float _fixed_freq;  // Target frequency for this station (shared between A and B)
+    bool _enabled;      // True when frequency is in audible range (shared)
+    bool _active;       // True when transmitter should be active (shared)
+    float _vfo_freq;    // Current VFO frequency (shared - there's only one VFO)
+
+#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
+    // Wave Generator A variables
     float _frequency;   // Current frequency difference from VFO
-    float _vfo_freq;    // Current VFO frequency (for signal meter charge calculation)
-    // NOTE: Required by StationManager when using shared Realization arrays
-    bool _active;       // True when transmitter should be active
     
     // Dynamic station management state
-    StationState _station_state;  // Current state in dynamic management system
+    StationState2 _station_state;  // Current state in dynamic management system
+
+    // Wave Generator C variables
+    float _frequency_c;   // Current frequency difference from VFO
+    
+    // // Dynamic station management state
+    // StationState2 _station_state_c;  // Current state in dynamic management system
+#elif defined(ENABLE_GENERATOR_A)
+    // Wave Generator A variables
+    float _frequency;   // Current frequency difference from VFO
+    
+    // Dynamic station management state
+    StationState2 _station_state;  // Current state in dynamic management system
+#elif defined(ENABLE_GENERATOR_C)
+    // Wave Generator C variables
+    float _frequency_c;   // Current frequency difference from VFO
+    
+    // Dynamic station management state
+    StationState2 _station_state_c;  // Current state in dynamic management system
+#endif
 
     // Centralized charge pulse logic for all simulated stations
-    virtual void send_carrier_charge_pulse(SignalMeter* signal_meter) {
-        if (!signal_meter) return;
-        int charge = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-        if (charge > 0) {
-            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff = abs(_fixed_freq - _vfo_freq);
-            if (freq_diff <= LOCK_WINDOW_HZ) {
-                signal_meter->add_charge(-charge);
-            } else {
-                signal_meter->add_charge(charge);
-            }
-        }
-    }
+    virtual void send_carrier_charge_pulse(SignalMeter* signal_meter);
 };
 
 #endif
