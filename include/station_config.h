@@ -32,7 +32,8 @@
 // #define CONFIG_FOUR_JAMMER      // Four Jammer stations for interference testing
 // #define CONFIG_PAGER2_TEST      // Single dual-tone pager station for testing dual wave generators
 // #define CONFIG_MINIMAL_CW       // Single CW station (minimal memory) - CONFIRMED: Single station causes restarts
-#define CONFIG_SIMSTATION2_TEST // Single SimStation2 station for testing duplicate class functionality
+// #define CONFIG_SIMSTATION2_TEST // Single SimStation2 station for testing duplicate class functionality
+#define CONFIG_SIMRING_TEST     // Single SimRing station for testing dual-tone ring cadence
 
 // ===== LISTENING PLEASURE CONFIGURATION =====
 // #define CONFIG_CW_CLUSTER       // Four CW stations clustered in 40m for listening pleasure
@@ -216,6 +217,12 @@
     #define ENABLE_CW_CLUSTER_STATIONS
     #define ENABLE_MORSE_STATION
     // Other stations disabled for focused CW listening
+#endif
+
+#ifdef CONFIG_SIMRING_TEST
+    // Test: Single SimRing station for testing dual-tone ring cadence
+    #define ENABLE_SIMRING_TEST
+    // All other stations disabled for focused testing
 #endif
 
 #ifdef CONFIG_SIMSTATION2_TEST

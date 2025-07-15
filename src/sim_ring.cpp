@@ -4,7 +4,7 @@
 #include "sim_ring.h"
 #include "signal_meter.h"
 
-SimRing::SimRing(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq) 
+SimRingUnworking::SimRingUnworking(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq) 
     : SimTransmitter(wave_gen_pool, fixed_freq), _signal_meter(signal_meter)
 {
 #if defined(ENABLE_SECOND_GENERATOR) || defined(ENABLE_DUAL_GENERATOR)
@@ -16,7 +16,7 @@ SimRing::SimRing(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fi
     // ring transmission will be started in begin() method
 }
 
-bool SimRing::begin(unsigned long time)
+bool SimRingUnworking::begin(unsigned long time)
 {
 #ifdef ENABLE_FIRST_GENERATOR
     // FIRST GENERATOR ONLY MODE
@@ -113,7 +113,7 @@ bool SimRing::begin(unsigned long time)
     return true;
 }
 
-void SimRing::realize()
+void SimRingUnworking::realize()
 {
     Serial.print("REALIZE DEBUG: _frequency = ");
     Serial.println(_frequency);
@@ -275,7 +275,7 @@ void SimRing::realize()
 #endif
 }
 
-bool SimRing::update(Mode *mode)
+bool SimRingUnworking::update(Mode *mode)
 {
     common_frequency_update(mode);
 
@@ -288,7 +288,7 @@ bool SimRing::update(Mode *mode)
     return true;
 }
 
-bool SimRing::step(unsigned long time)
+bool SimRingUnworking::step(unsigned long time)
 {
     switch(_telco.step_telco(time)) {        case STEP_TELCO_TURN_ON:
             // Check if this is the start of a new page cycle (silence → tone A)
@@ -419,7 +419,7 @@ bool SimRing::step(unsigned long time)
     return true;
 }
 
-void SimRing::generate_new_tone_pair()
+void SimRingUnworking::generate_new_tone_pair()
 {
     // Fixed North American telephone ring frequencies
     // For dual-tone ring: Generator 1 = 440 Hz, Generator 2 = 480 Hz
@@ -434,12 +434,12 @@ void SimRing::generate_new_tone_pair()
 #endif
 }
 
-void SimRing::debug_print_tone_pair() const
+void SimRingUnworking::debug_print_tone_pair() const
 {
     // Debug output not needed for Arduino build
 }
 
-void SimRing::debug_test_dual_generator_acquisition()
+void SimRingUnworking::debug_test_dual_generator_acquisition()
 {
     // DEBUG: Test if we can acquire both generators simultaneously
     Serial.println("=== DUAL GENERATOR ACQUISITION TEST ===");
@@ -530,7 +530,7 @@ void SimRing::debug_test_dual_generator_acquisition()
     Serial.println("=== END DUAL GENERATOR TEST ===");
 }
 
-void SimRing::end()
+void SimRingUnworking::end()
 {
     // Call parent class end method
     SimTransmitter::end();
@@ -538,7 +538,7 @@ void SimRing::end()
 
 // SECOND GENERATOR HELPER METHODS
 #if defined(ENABLE_SECOND_GENERATOR) || defined(ENABLE_DUAL_GENERATOR)
-bool SimRing::acquire_second_generator()
+bool SimRingUnworking::acquire_second_generator()
 {
     if (_realizer_b != -1) {
         return true;  // Already have one
@@ -548,7 +548,7 @@ bool SimRing::acquire_second_generator()
     return (_realizer_b != -1);
 }
 
-void SimRing::release_second_generator()
+void SimRingUnworking::release_second_generator()
 {
     if (_realizer_b != -1) {
         _wave_gen_pool->free_realizer(_realizer_b, _station_id);
@@ -556,7 +556,7 @@ void SimRing::release_second_generator()
     }
 }
 
-void SimRing::silence_second_generator()
+void SimRingUnworking::silence_second_generator()
 {
     if (_realizer_b != -1) {
         WaveGen *wavegen_b = _wave_gen_pool->access_realizer(_realizer_b);

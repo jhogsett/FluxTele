@@ -39,6 +39,10 @@
 #include "sim_station2.h"
 #endif
 
+#ifdef ENABLE_SIMRING_TEST
+#include "sim_ring_dual.h"
+#endif
+
 #ifdef ENABLE_EXCHANGE_STATION
 #include "sim_exchange.h"
 #endif
@@ -187,13 +191,13 @@ SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 #endif
 
 #ifdef ENABLE_RING_STATION
-SimRing ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
+SimRingUnworking ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
 #endif
 
 // FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
 // All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
 Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual station count! ***
-                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRing)
+                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRingUnworking)
                               // Update array size when changing station configurations!
 
 #ifdef ENABLE_MORSE_STATION
@@ -491,6 +495,22 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 };
 #endif
 
+#ifdef CONFIG_SIMRING_TEST
+// TEST: Single SimRing station for testing dual-tone ring cadence
+SimRing ring_test1(&wave_gen_pool, &signal_meter, 55500000.0);  // Ring tone at 55.5 MHz
+SimRing ring_test2(&wave_gen_pool, &signal_meter, 55501000.0);  // Second ring at 55.501 MHz
+
+SimDualTone *dualtone_station_pool[2] = {  // Pool for dual-tone telephony stations
+    &ring_test1,
+    &ring_test2
+};
+
+Realization *realizations[2] = {  // Shared realization pool
+	&ring_test1,
+	&ring_test2
+};
+#endif
+
 #ifdef CONFIG_DEV_LOW_RAM
 // DEVELOPMENT: Low RAM configuration - only essential stations for development
 #ifdef ENABLE_MORSE_STATION
@@ -603,6 +623,8 @@ Realization *realizations[1] = {
 bool realization_stats[1] = {false};
 #elif defined(CONFIG_SIMSTATION2_TEST)
 bool realization_stats[2] = {false, false};  // Single SimStation2 test station
+#elif defined(CONFIG_SIMRING_TEST)
+bool realization_stats[2] = {false, false};  // SimRing dual-tone test stations
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -624,6 +646,8 @@ bool realization_stats[4] = {false, false, false, false};
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_SIMSTATION2_TEST)
+RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_SIMRING_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
@@ -651,6 +675,8 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 #ifdef CONFIG_MINIMAL_CW
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_SIMSTATION2_TEST)
+StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+#elif defined(CONFIG_SIMRING_TEST)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
@@ -936,7 +962,7 @@ void loop()
 // 	exchange_station1.debug_print_signal_info();
 // #endif
 
-	// Initialize SimRing SECOND to test dual generator acquisition for ring signals
+	// Initialize SimRingUnworking SECOND to test dual generator acquisition for ring signals
 #ifdef ENABLE_RING_STATION
 	ring_station1.begin(time + random(2000));  // Start after SimExchange
 	ring_station1.set_station_state(AUDIBLE);

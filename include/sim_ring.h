@@ -16,10 +16,10 @@ class SignalMeter; // Forward declaration
 #define RING_TONE_HIGH_OFFSET 480.0    // Second ring tone (480 Hz) 
 #define RING_TONE_MIN_SEPARATION 40.0  // Separation between 440 and 480 Hz tones
 
-class SimRing : public SimTransmitter
+class SimRingUnworking : public SimTransmitter
 {
 public:
-    SimRing(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
+    SimRingUnworking(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
     
     virtual bool begin(unsigned long time) override;
     virtual bool update(Mode *mode) override;
