@@ -480,7 +480,7 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 SimStation2 cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, 15);  // 15 WPM at 55.5 MHz
 SimStation2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, 15);  // 15 WPM at 55.5 MHz
 
-SimTransmitter2 *station_pool[2] = {  // Only 1 entry for test config - NOTE: SimTransmitter2* not SimTransmitter*
+SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1,
     &cw_station2_test2
 };

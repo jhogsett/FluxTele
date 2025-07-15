@@ -6,11 +6,11 @@
 #define ENABLE_GENERATOR_C  // Enable for duplication testing
 
 #include "async_morse.h"
-#include "sim_dualtone.h"
+#include "sim_transmitter2.h"
 
 class SignalMeter; // Forward declaration
 
-#define SPACE_FREQUENCY2 SILENT_FREQ_DT  // Use the DualTone silent frequency constant
+#define SPACE_FREQUENCY2 0.1
 #define MESSAGE_BUFFER2 50
 
 // Configurable CQ message format - can be overridden by defining before including this header
@@ -18,7 +18,7 @@ class SignalMeter; // Forward declaration
 #define CQ_MESSAGE_FORMAT2 "CQ CQ DE %s %s K    "
 #endif
 
-class SimStation2 : public SimDualTone
+class SimStation2 : public SimTransmitter2
 {
 public:
     SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, int wpm);

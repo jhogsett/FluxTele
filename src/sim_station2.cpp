@@ -20,7 +20,7 @@
 
 // mode is expected to be a derivative of VFO
 SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, int wpm)
-    : SimTransmitter2(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _stored_wpm(wpm), _base_wpm(wpm)
+    : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _stored_wpm(wpm), _base_wpm(wpm)
 {
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
@@ -38,7 +38,7 @@ SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, 
 }
 
 SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, int wpm, byte fist_quality)
-    : SimTransmitter2(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _stored_wpm(wpm), _base_wpm(wpm)
+    : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _stored_wpm(wpm), _base_wpm(wpm)
 {
     // Initialize operator frustration drift tracking    // Initialize operator frustration drift tracking
     _cycles_completed = 0;
