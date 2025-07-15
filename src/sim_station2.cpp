@@ -212,9 +212,9 @@ bool SimStation2::step(unsigned long time){
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
 
-            _active = true;
-            realize();
-            send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+            // _active = true;
+            // realize();
+            // send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
 #elif defined(ENABLE_GENERATOR_A)
             _active = true;
             realize();
@@ -231,8 +231,8 @@ bool SimStation2::step(unsigned long time){
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
 
-            // Carrier remains on - send another charge pulse
-            send_carrier_charge_pulse(_signal_meter);
+            // // Carrier remains on - send another charge pulse
+            // send_carrier_charge_pulse(_signal_meter);
 #elif defined(ENABLE_GENERATOR_A)
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
@@ -247,8 +247,8 @@ bool SimStation2::step(unsigned long time){
             _active = false;
             realize();
 
-            _active = false;
-            realize();
+            // _active = false;
+            // realize();
 #elif defined(ENABLE_GENERATOR_A)
             _active = false;
             realize();
@@ -264,9 +264,9 @@ bool SimStation2::step(unsigned long time){
             _active = false;
             realize();
             
-            // CQ cycle completed! Check if operator gets frustrated and start wait delay
-            _active = false;
-            realize();
+            // // CQ cycle completed! Check if operator gets frustrated and start wait delay
+            // _active = false;
+            // realize();
 #elif defined(ENABLE_GENERATOR_A)
             // CQ cycle completed! Check if operator gets frustrated and start wait delay
             _active = false;

@@ -23,7 +23,7 @@ SimTransmitter2::SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq)
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     // Initialize Wave Generator A variables
     _frequency = 0.0;
-    _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
+    // _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
     
     // Initialize dynamic station management state
     _station_state = DORMANT2;
@@ -90,15 +90,16 @@ void SimTransmitter2::common_frequency_update(Mode *mode)
     // This shifts the audio frequency without affecting signal meter calculations
     _frequency = raw_frequency + option_bfo_offset;
 
-    // Note: mode is expected to be a VFO object
-    VFO *vfo_c = static_cast<VFO*>(mode);
-    _vfo_freq = float(vfo_c->_frequency) + (vfo_c->_sub_frequency / 10.0);
+    // // Note: mode is expected to be a VFO object
+    // VFO *vfo_c = static_cast<VFO*>(mode);
+    // _vfo_freq = float(vfo_c->_frequency) + (vfo_c->_sub_frequency / 10.0);
     
-    // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    float raw_frequency_c = _vfo_freq - _fixed_freq;
+    // // Calculate raw frequency difference (used for signal meter - no BFO offset)
+    // float raw_frequency_c = _vfo_freq - _fixed_freq;
       // Add BFO offset for comfortable audio tuning + test offset for dual generator verification
     // This shifts the audio frequency without affecting signal meter calculations
-    _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    // _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    _frequency_c = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
 #elif defined(ENABLE_GENERATOR_A)
     // Note: mode is expected to be a VFO object
     VFO *vfo = static_cast<VFO*>(mode);
@@ -211,18 +212,35 @@ void SimTransmitter2::end()
 void SimTransmitter2::force_wave_generator_refresh()
 {
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
-    // Force wave generator hardware update regardless of cached state
-    // This is needed when returning to SimRadio after application switches
-    if(_realizer != -1) {
+    // Initialize all acquired wave generators
+    int realizer_index = 0;
+    
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
         WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
         wavegen->force_refresh();
     }
-    // Force wave generator hardware update regardless of cached state
-    // This is needed when returning to SimRadio after application switches
-    if(_realizer != -1) {
+
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
         wavegen_c->force_refresh();
     }
+
+// #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
+//     // Force wave generator hardware update regardless of cached state
+//     // This is needed when returning to SimRadio after application switches
+//     if(_realizer != -1) {
+//         WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
+//         wavegen->force_refresh();
+//     }
+//     // Force wave generator hardware update regardless of cached state
+//     // This is needed when returning to SimRadio after application switches
+//     if(_realizer != -1) {
+//         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
+//         wavegen_c->force_refresh();
+//     }
+
 #elif defined(ENABLE_GENERATOR_A)
     // Force wave generator hardware update regardless of cached state
     // This is needed when returning to SimRadio after application switches
