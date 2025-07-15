@@ -31,8 +31,8 @@ SimTransmitter2::SimTransmitter2(WaveGenPool *wave_gen_pool, float fixed_freq)
     // Initialize Wave Generator C variables
     _frequency_c = 0.0;
     
-    // Initialize dynamic station management state
-    _station_state_c = DORMANT2;
+    // // Initialize dynamic station management state
+    // _station_state_c = DORMANT2;
 #elif defined(ENABLE_GENERATOR_A)
     // Initialize Wave Generator A variables
     _frequency = 0.0;
@@ -261,7 +261,7 @@ bool SimTransmitter2::reinitialize(unsigned long time, float fixed_freq)
 
     // Reset Wave Generator C state
     _frequency_c = 0.0;
-    _station_state_c = ACTIVE2;  // Station is now active at new frequency
+    // _station_state_c = ACTIVE2;  // Station is now active at new frequency
 #elif defined(ENABLE_GENERATOR_A)
     // Reset Wave Generator A state
     _frequency = 0.0;
@@ -302,16 +302,16 @@ void SimTransmitter2::set_station_state(StationState2 new_state)
         }
     }
 
-    StationState2 old_state_c = _station_state_c;
-    _station_state_c = new_state;
+    // StationState2 old_state_c = _station_state_c;
+    // _station_state_c = new_state;
     
-    // Handle state transition logic
-    if(old_state_c == AUDIBLE2 && new_state != AUDIBLE2) {
-        // Losing AD9833 generator - release it
-        if(_realizer != -1) {
-            end();  // This will free the realizer
-        }
-    }
+    // // Handle state transition logic
+    // if(old_state_c == AUDIBLE2 && new_state != AUDIBLE2) {
+    //     // Losing AD9833 generator - release it
+    //     if(_realizer != -1) {
+    //         end();  // This will free the realizer
+    //     }
+    // }
 #elif defined(ENABLE_GENERATOR_A)
     StationState2 old_state = _station_state;
     _station_state = new_state;
@@ -345,7 +345,7 @@ StationState2 SimTransmitter2::get_station_state() const
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     return _station_state;
 
-    return _station_state_c;
+    // return _station_state_c;
 #elif defined(ENABLE_GENERATOR_A)
     return _station_state;
 #elif defined(ENABLE_GENERATOR_C)
@@ -358,7 +358,7 @@ bool SimTransmitter2::is_audible() const
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     return _station_state == AUDIBLE2;
     
-    return _station_state_c == AUDIBLE2;
+    // return _station_state_c == AUDIBLE2;
 #elif defined(ENABLE_GENERATOR_A)
     return _station_state == AUDIBLE2;
 #elif defined(ENABLE_GENERATOR_C)
