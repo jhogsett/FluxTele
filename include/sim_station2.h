@@ -5,54 +5,43 @@
 #define ENABLE_GENERATOR_A  // Enable by default
 #define ENABLE_GENERATOR_C  // Enable for duplication testing
 
-#include "async_morse.h"
 #include "sim_dualtone.h"
 
 class SignalMeter; // Forward declaration
 
 #define SPACE_FREQUENCY2 SILENT_FREQ_DT  // Use the DualTone silent frequency constant
-#define MESSAGE_BUFFER2 50
-
-// Configurable CQ message format - can be overridden by defining before including this header
-#ifndef CQ_MESSAGE_FORMAT2
-#define CQ_MESSAGE_FORMAT2 "CQ CQ DE %s %s K    "
-#endif
 
 class SimStation2 : public SimDualTone
 {
 public:
-    SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, int wpm);
-    SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, int wpm, byte fist_quality);
+    SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
     virtual bool begin(unsigned long time) override;
     
     virtual bool update(Mode *mode) override;
     virtual bool step(unsigned long time) override;
 
     void realize();
-    void apply_wpm_drift();         // Add slight WPM drift for realism
-    virtual void randomize() override;  // Re-randomize callsign, WPM, and fist quality
+    virtual void randomize() override;  // Re-randomize station properties
     
     // Set station into retry state (used when initialization fails)
     void set_retry_state(unsigned long next_try_time);
 
 private:
-    AsyncMorse _morse;
-    bool _changed;
     SignalMeter *_signal_meter;
-    char _generated_message[MESSAGE_BUFFER2];     // Generated CQ message with random callsign
-    int _stored_wpm;                // Stored WPM from constructor  
-    int _base_wpm;                  // Store original WPM for drift calculations
-      // Operator frustration frequency drift
-    int _cycles_completed;          // Number of complete CQ cycles sent
+    
+    // Simple on/off timing state
+    bool _carrier_on;               // Current carrier state (on/off)
+    unsigned long _next_transition_time; // Time for next state change
+    
+    // Operator frustration frequency drift
+    int _cycles_completed;          // Number of complete on/off cycles sent
     int _cycles_until_qsy;          // Random number of cycles before operator gets frustrated and QSYs
     
     // Message repetition state
-    bool _in_wait_delay;            // True when waiting between CQ repetitions
-    unsigned long _next_cq_time;    // Time to start next CQ cycle
+    bool _in_wait_delay;            // True when waiting between transmission cycles
+    unsigned long _next_cycle_time; // Time to start next transmission cycle
 
 private:
-    void generate_random_callsign(char *callsign_buffer, size_t buffer_size);
-    void generate_cq_message();
     void apply_operator_frustration_drift();
 };
 
