@@ -5,6 +5,7 @@
 #define ENABLE_GENERATOR_A  // Enable by default
 #define ENABLE_GENERATOR_C  // Enable for duplication testing
 
+#include "async_telco.h"
 #include "sim_dualtone.h"
 
 class SignalMeter; // Forward declaration
@@ -27,11 +28,8 @@ public:
     void set_retry_state(unsigned long next_try_time);
 
 private:
+    AsyncTelco _telco;              // AsyncTelco for ring cadence timing
     SignalMeter *_signal_meter;
-    
-    // Simple on/off timing state
-    bool _carrier_on;               // Current carrier state (on/off)
-    unsigned long _next_transition_time; // Time for next state change
     
     // Operator frustration frequency drift
     int _cycles_completed;          // Number of complete on/off cycles sent

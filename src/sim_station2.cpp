@@ -21,8 +21,6 @@ SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, 
     _cycles_until_qsy = 3 + (random(6));   // 3-8 cycles before frustration (realistic)
 
     // Initialize timing state
-    _carrier_on = false;
-    _next_transition_time = 0;
     _in_wait_delay = false;
     _next_cycle_time = 0;
 }
@@ -70,9 +68,8 @@ bool SimStation2::begin(unsigned long time){
     force_frequency_update();
     realize();  // CRITICAL: Set active state for audio output!
 
-    // Initialize timing for simple on/off pattern
-    _carrier_on = false;
-    _next_transition_time = time;  // Start immediately
+    // Start AsyncTelco ring cadence (repeating)
+    _telco.start_telco_transmission(true);
     _in_wait_delay = false;
 
     return true;
@@ -160,26 +157,27 @@ bool SimStation2::update(Mode *mode){
 // call periodically to keep realization dynamic
 // returns true if it should keep going
 bool SimStation2::step(unsigned long time){
-    // Handle simple on/off timing: 2 seconds on, 4 seconds off
+    // Handle ring cadence timing using AsyncTelco
+    int telco_state = _telco.step_telco(time);
     
-    // Check if it's time for state transition
-    if(time >= _next_transition_time) {
-        if(_carrier_on) {
-            // Turn carrier off, schedule next on time (4 seconds later)
-            _carrier_on = false;
-            _active = false;
-            realize();
-            _next_transition_time = time + 4000;  // 4 seconds off
-            
-        } else {
-            // Turn carrier on, schedule next off time (2 seconds later)
-            _carrier_on = true;
+    switch(telco_state) {
+        case STEP_TELCO_TURN_ON:
             _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
-            _next_transition_time = time + 2000;  // 2 seconds on
+            break;
             
-            // Count completed cycles for frustration logic
+        case STEP_TELCO_LEAVE_ON:
+            // Carrier remains on - send another charge pulse
+            send_carrier_charge_pulse(_signal_meter);
+            break;
+            
+        case STEP_TELCO_TURN_OFF:
+            _active = false;
+            realize();
+            // No charge pulse when carrier turns off
+            
+            // Count completed cycles for frustration logic (when ring cycle ends)
             _cycles_completed++;
             if(_cycles_completed >= _cycles_until_qsy) {
                 // Operator gets frustrated, QSYs to new frequency
@@ -188,12 +186,17 @@ bool SimStation2::step(unsigned long time){
                 _cycles_completed = 0;
                 _cycles_until_qsy = 3 + (random(6));   // 3-8 cycles before next frustration
             }
-        }
-    }
-    
-    // Send continuous charge pulses while carrier is on
-    if(_carrier_on && _active) {
-        send_carrier_charge_pulse(_signal_meter);
+            break;
+            
+        case STEP_TELCO_LEAVE_OFF:
+            // Carrier remains off - no action needed
+            break;
+            
+        case STEP_TELCO_CHANGE_FREQ:
+            // Continue transmitting but change frequency (for dual-tone systems)
+            // Ring uses single tone, but this prepares for other telephony sounds
+            send_carrier_charge_pulse(_signal_meter);
+            break;
     }
 
     // Check if it's time to start next transmission cycle after a wait period
@@ -244,8 +247,6 @@ void SimStation2::randomize()
     _cycles_until_qsy = random(3, 11);  // 3-10 cycles before getting frustrated
     
     // Reset timing state
-    _carrier_on = false;
-    _next_transition_time = 0;
     _in_wait_delay = false;
     _next_cycle_time = 0;  // Will be set properly on next cycle
 }
