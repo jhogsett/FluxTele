@@ -473,7 +473,7 @@ void SimDualTone::send_carrier_charge_pulse(SignalMeter* signal_meter) {
         }
     }
 
-    if (!signal_meter) return;
+    // if (!signal_meter) return;
     int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
     if (charge_c > 0) {
         const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
