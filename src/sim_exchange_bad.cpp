@@ -1,8 +1,8 @@
-#include "sim_exchange.h"
+#include "sim_exchange_bad.h"
 #include "signal_meter.h"
 #include "Arduino.h"
 
-SimExchange::SimExchange(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, 
+SimExchangeBad::SimExchangeBad(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, 
                          ExchangeSignalType signal_type)
     : SimTransmitter(wave_gen_pool, fixed_freq),
       _signal_type(signal_type),
@@ -17,11 +17,11 @@ SimExchange::SimExchange(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, 
 {
 }
 
-bool SimExchange::acquire_second_generator()
+bool SimExchangeBad::acquire_second_generator()
 {
     _realizer_b = _wave_gen_pool->get_realizer();
     if(_realizer_b != -1) {
-        Serial.print("SimExchange: Acquired second generator #");
+        Serial.print("SimExchangeBad: Acquired second generator #");
         Serial.println(_realizer_b);
         
         // Initialize second generator
@@ -32,16 +32,16 @@ bool SimExchange::acquire_second_generator()
             _dual_generator_mode = true;
             return true;
         }
-        Serial.println("SimExchange: ERROR - Could not access second generator");
+        Serial.println("SimExchangeBad: ERROR - Could not access second generator");
     }
-    Serial.println("SimExchange: WARNING - No second generator available");
+    Serial.println("SimExchangeBad: WARNING - No second generator available");
     return false;
 }
 
-void SimExchange::release_second_generator()
+void SimExchangeBad::release_second_generator()
 {
     if(_realizer_b != -1) {
-        Serial.print("SimExchange: Releasing second generator #");
+        Serial.print("SimExchangeBad: Releasing second generator #");
         Serial.println(_realizer_b);
         
         // Silence the second generator before release
@@ -58,9 +58,9 @@ void SimExchange::release_second_generator()
     }
 }
 
-bool SimExchange::begin(unsigned long time)
+bool SimExchangeBad::begin(unsigned long time)
 {
-    Serial.print("SimExchange: Starting telephony signal: ");
+    Serial.print("SimExchangeBad: Starting telephony signal: ");
     switch(_signal_type) {
         case EXCHANGE_DIAL_TONE: Serial.println("DIAL TONE"); break;
         case EXCHANGE_RINGING: Serial.println("RINGING"); break;
@@ -73,13 +73,13 @@ bool SimExchange::begin(unsigned long time)
     
     // Initialize base transmitter first
     if(!Realization::begin(time)) {
-        Serial.println("SimExchange: ERROR - Could not initialize base realizer");
+        Serial.println("SimExchangeBad: ERROR - Could not initialize base realizer");
         return false;
     }
     
     // Print primary generator assignment for debugging
     if(_realizer != -1) {
-        Serial.print("SimExchange: Primary generator assigned: #");
+        Serial.print("SimExchangeBad: Primary generator assigned: #");
         Serial.println(_realizer);
     }
     
@@ -94,7 +94,7 @@ bool SimExchange::begin(unsigned long time)
     return true;
 }
 
-void SimExchange::end()
+void SimExchangeBad::end()
 {
     // Release second generator first
     release_second_generator();
@@ -103,7 +103,7 @@ void SimExchange::end()
     SimTransmitter::end();
 }
 
-bool SimExchange::update(Mode *mode)
+bool SimExchangeBad::update(Mode *mode)
 {
     // Call inherited update for basic frequency management
     common_frequency_update(mode);
@@ -119,14 +119,14 @@ bool SimExchange::update(Mode *mode)
     return true;
 }
 
-bool SimExchange::step(unsigned long time)
+bool SimExchangeBad::step(unsigned long time)
 {
     // Update timing and realize telephony signals
     realize();
     return true;  // Always continue running
 }
 
-void SimExchange::randomize()
+void SimExchangeBad::randomize()
 {
     // Randomize telephony signal type for realistic exchange behavior
     // Weight towards common signals: dial tone and busy are more common than error tones
@@ -136,32 +136,32 @@ void SimExchange::randomize()
     if(signal_choice < 30) {
         // 30% chance: Dial tone (most common)
         _signal_type = EXCHANGE_DIAL_TONE;
-        Serial.println("SimExchange: Randomized to DIAL_TONE");
+        Serial.println("SimExchangeBad: Randomized to DIAL_TONE");
     }
     else if(signal_choice < 50) {
         // 20% chance: Busy signal (common)
         _signal_type = EXCHANGE_BUSY;
-        Serial.println("SimExchange: Randomized to BUSY_SIGNAL");
+        Serial.println("SimExchangeBad: Randomized to BUSY_SIGNAL");
     }
     else if(signal_choice < 70) {
         // 20% chance: Ringing (common)
         _signal_type = EXCHANGE_RINGING;
-        Serial.println("SimExchange: Randomized to RINGING");
+        Serial.println("SimExchangeBad: Randomized to RINGING");
     }
     else if(signal_choice < 85) {
         // 15% chance: Reorder (less common)
         _signal_type = EXCHANGE_REORDER;
-        Serial.println("SimExchange: Randomized to REORDER");
+        Serial.println("SimExchangeBad: Randomized to REORDER");
     }
     else if(signal_choice < 95) {
         // 10% chance: Error tone (uncommon)
         _signal_type = EXCHANGE_ERROR;
-        Serial.println("SimExchange: Randomized to ERROR_TONE");
+        Serial.println("SimExchangeBad: Randomized to ERROR_TONE");
     }
     else {
         // 5% chance: Silent (rare, for maintenance periods)
         _signal_type = EXCHANGE_SILENT;
-        Serial.println("SimExchange: Randomized to SILENT");
+        Serial.println("SimExchangeBad: Randomized to SILENT");
     }
     
     // Reset state machine for new signal type
@@ -175,9 +175,9 @@ void SimExchange::randomize()
     }
 }
 
-void SimExchange::debug_print_signal_info() const
+void SimExchangeBad::debug_print_signal_info() const
 {
-    Serial.println("=== SimExchange Signal Debug Info ===");
+    Serial.println("=== SimExchangeBad Signal Debug Info ===");
     Serial.print("Signal Type: ");
     switch(_signal_type) {
         case EXCHANGE_DIAL_TONE: Serial.print("DIAL_TONE"); break;
@@ -222,7 +222,7 @@ void SimExchange::debug_print_signal_info() const
     Serial.println("=======================================");
 }
 
-void SimExchange::realize()
+void SimExchangeBad::realize()
 {
     unsigned long current_time = millis();
     
@@ -263,14 +263,14 @@ void SimExchange::realize()
     }
 }
 
-void SimExchange::realize_dial_tone(unsigned long current_time, WaveGen *wavegen)
+void SimExchangeBad::realize_dial_tone(unsigned long current_time, WaveGen *wavegen)
 {
     // Dial tone is continuous dual-tone (350 + 440 Hz)
     set_dual_tone(EXCHANGE_DIAL_TONE_LOW, EXCHANGE_DIAL_TONE_HIGH);
     _tone_active = true;
 }
 
-void SimExchange::realize_ringing(unsigned long current_time, WaveGen *wavegen)
+void SimExchangeBad::realize_ringing(unsigned long current_time, WaveGen *wavegen)
 {
     // Ringing: 2 seconds on, 4 seconds off (440 + 480 Hz)
     unsigned long cycle_time = current_time - _last_state_change;
@@ -289,7 +289,7 @@ void SimExchange::realize_ringing(unsigned long current_time, WaveGen *wavegen)
     }
 }
 
-void SimExchange::realize_busy(unsigned long current_time, WaveGen *wavegen)
+void SimExchangeBad::realize_busy(unsigned long current_time, WaveGen *wavegen)
 {
     // Busy signal: 500ms on, 500ms off (480 + 620 Hz)
     unsigned long cycle_time = current_time - _last_state_change;
@@ -308,7 +308,7 @@ void SimExchange::realize_busy(unsigned long current_time, WaveGen *wavegen)
     }
 }
 
-void SimExchange::realize_reorder(unsigned long current_time, WaveGen *wavegen)
+void SimExchangeBad::realize_reorder(unsigned long current_time, WaveGen *wavegen)
 {
     // Reorder signal: 250ms on, 250ms off (480 + 620 Hz) - faster than busy
     unsigned long cycle_time = current_time - _last_state_change;
@@ -327,7 +327,7 @@ void SimExchange::realize_reorder(unsigned long current_time, WaveGen *wavegen)
     }
 }
 
-void SimExchange::realize_error_tone(unsigned long current_time, WaveGen *wavegen)
+void SimExchangeBad::realize_error_tone(unsigned long current_time, WaveGen *wavegen)
 {
     // Error tone: 3-tone sequence with specific timing from header
     unsigned long cycle_time = current_time - _last_state_change;
@@ -390,7 +390,7 @@ void SimExchange::realize_error_tone(unsigned long current_time, WaveGen *wavege
     }
 }
 
-void SimExchange::set_single_tone(float frequency)
+void SimExchangeBad::set_single_tone(float frequency)
 {
     // Set primary generator to frequency, secondary silent
     if(_realizer != -1) {
@@ -413,7 +413,7 @@ void SimExchange::set_single_tone(float frequency)
     }
 }
 
-void SimExchange::set_dual_tone(float freq_a, float freq_b)
+void SimExchangeBad::set_dual_tone(float freq_a, float freq_b)
 {
     // Set primary generator to freq_a
     if(_realizer != -1) {

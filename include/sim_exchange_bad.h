@@ -48,7 +48,7 @@ enum ExchangeSignalType {
 #define EXCHANGE_ERROR_SILENCE_TIME 2000    // ms
 
 /**
- * SimExchange - Telephone Exchange Simulator
+ * SimExchangeBad - Telephone Exchange Simulator
  * 
  * Simulates authentic North American telephone exchange signals including:
  * - Dial tone (350 + 440 Hz)
@@ -66,10 +66,10 @@ enum ExchangeSignalType {
  * INHERITANCE CONTRACT: Inherits from SimTransmitter which provides
  * Realization base class for FluxTune memory optimization.
  */
-class SimExchange : public SimTransmitter
+class SimExchangeBad : public SimTransmitter
 {
 public:
-    SimExchange(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, 
+    SimExchangeBad(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, 
                 ExchangeSignalType signal_type = EXCHANGE_DIAL_TONE);
     
     virtual bool begin(unsigned long time);

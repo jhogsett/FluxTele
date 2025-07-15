@@ -13,13 +13,19 @@
     - importantly, they both respond properly to the tuning knob before and after station relocation
         - meaning their audio frequencies change smoothly while dialing with no clicks/pops/artifacts
 
-### Next Steps
+### Next Steps - Phase One
 
 1. Transition `SimTransmitter2` to `SimDualTone` to support station types using two wave generators (a common Telco case)
     - this might be just renaming the class as the dual tone support seems solid
+
+### Next Steps - Phase Two (after Phase One is confirmed working in the device)
+
+IMPORTANT NOTE: While working on this phase, we need to make small incremental improvements that are verified on the device before continuing. The last time this transition was attempted, we lost dual-tone support and introduced several old bugs.
+
 2. Transition `SimStation2` to `SimRing` to demonstrate one simple Telco simulation
     - this is a large change:
-        - SimStation2 no longer needs AsyncMorse
+        - `SimStation2` no longer needs `AsyncMorse`
+        - There is an earlier developed `AsyncTelco` class for sequencing typical dual-tone Telco sounds that may have been developed to the point of working properly. 
         - It needs it's own set of frequency offets that need to be applied (similar to the 100 Hz temporary hack does mentioned above). In this case 440 Hz and 480 Hz.
             - Because the audible frequency calculations are occuring in `SimDualTone` (formerly `SimTransmitter2`) it may make sense to support those necessary offsets direct into `SimDualTone` 
             - Maybe when `SimRing` constructs it can specify the two needed tone offsets to it's parent class
@@ -29,6 +35,5 @@
             - repeating the above cycle indefinitely
             - entering a retry mode when wave generators cannot be acquired
         - All other station behavior needs to remain unchanged as it's working
-
 
 

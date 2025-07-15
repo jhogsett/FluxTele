@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 // Ring/Telco timing constants (in milliseconds)
-// SimRing: North American telephone ring cadence (2 seconds on, 4 seconds off)
+// SimRingBad: North American telephone ring cadence (2 seconds on, 4 seconds off)
 // SimPager: Authentic two-tone sequential timing (Genave/Motorola Quick Call)
 #define TELCO_TONE_A_DURATION 2000    // Ring ON: 2.0 seconds (North American standard)
 #define TELCO_TONE_B_DURATION 0       // Ring: Skip TONE B entirely (set to 0)

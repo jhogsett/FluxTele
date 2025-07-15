@@ -39,12 +39,12 @@
 #include "sim_station2.h"
 #endif
 
-#ifdef ENABLE_EXCHANGE_STATION
-#include "sim_exchange.h"
+#ifdef ENABLE_EXCHANGE_BAD_STATION
+#include "sim_exchange_bad.h"
 #endif
 
-#ifdef ENABLE_RING_STATION
-#include "sim_ring.h"
+#ifdef ENABLE_RING_BAD_STATION
+#include "sim_ring_bad.h"
 #endif
 
 #ifdef ENABLE_NUMBERS_STATION
@@ -171,7 +171,7 @@ SimStation cw_station1(&wave_gen_pool, &signal_meter, 55504000.0, 15);   // 15 W
 SimStation cw_station2(&wave_gen_pool, &signal_meter, 55505000.0, 18);   // 18 WPM, 5 kHz spacing for pipelining
 #endif
 #ifdef ENABLE_EXCHANGE_STATION
-SimExchange exchange_station1(&wave_gen_pool, &signal_meter, 55600400.0, EXCHANGE_DIAL_TONE);  // Will be randomized in setup
+SimExchangeBad exchange_station1(&wave_gen_pool, &signal_meter, 55600400.0, EXCHANGE_DIAL_TONE);  // Will be randomized in setup
 #endif
 #ifdef ENABLE_NUMBERS_STATION
 SimNumbers numbers_station1(&wave_gen_pool, &signal_meter, 55500200, 18);
@@ -187,13 +187,13 @@ SimPager pager_station1(&wave_gen_pool, &signal_meter, 146800000.0);
 #endif
 
 #ifdef ENABLE_RING_STATION
-SimRing ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
+SimRingBad ring_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // 55.50 MHz - proper 5 kHz spacing for pipelining (replaces SimPager2)
 #endif
 
 // FluxTune Memory Optimization: Single shared array eliminates duplicate station_pool[]
 // All station classes inherit from both SimTransmitter and Realization for zero-copy sharing
 Realization *realizations[3] = {  // *** CRITICAL: Array size must match actual station count! ***
-                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRing)
+                              // Current CONFIG_MIXED_STATIONS = 3 stations (CW1 + CW2 + SimRingBad)
                               // Update array size when changing station configurations!
 
 #ifdef ENABLE_MORSE_STATION
@@ -925,7 +925,7 @@ void loop()
 	// ============================================================================
 	
 #ifdef CONFIG_MIXED_STATIONS
-	// Initialize SimExchange FIRST to test dual generator acquisition for telephony signals
+	// Initialize SimExchangeBad FIRST to test dual generator acquisition for telephony signals
 // #ifdef ENABLE_EXCHANGE_STATION
 // 	exchange_station1.randomize();  // Choose random telephony signal type
 // 	exchange_station1.begin(time + random(1000));  // Start FIRST to test dual acquisition
@@ -936,9 +936,9 @@ void loop()
 // 	exchange_station1.debug_print_signal_info();
 // #endif
 
-	// Initialize SimRing SECOND to test dual generator acquisition for ring signals
+	// Initialize SimRingBad SECOND to test dual generator acquisition for ring signals
 #ifdef ENABLE_RING_STATION
-	ring_station1.begin(time + random(2000));  // Start after SimExchange
+	ring_station1.begin(time + random(2000));  // Start after SimExchangeBad
 	ring_station1.set_station_state(AUDIBLE);
 	
 	// DEBUG: Test dual generator acquisition capability for ring
@@ -955,7 +955,7 @@ void loop()
 	cw_station2.set_station_state(AUDIBLE);
 #endif
 
-	// Legacy SimPager2 initialization (disabled in favor of SimExchange)
+	// Legacy SimPager2 initialization (disabled in favor of SimExchangeBad)
 #ifdef ENABLE_PAGER2_STATION
 	pager2_station1.begin(time + random(1000));  // Start FIRST to test dual acquisition
 	pager2_station1.set_station_state(AUDIBLE);
@@ -1255,7 +1255,7 @@ void loop()
 // 		if (millis() - last_exchange_randomization > EXCHANGE_RANDOMIZE_INTERVAL) {
 // 			exchange_station1.randomize();
 // 			last_exchange_randomization = millis();
-// 			Serial.print("SimExchange: Periodic randomization at ");
+// 			Serial.print("SimExchangeBad: Periodic randomization at ");
 // 			Serial.print(millis());
 // 			Serial.println(" ms");
 // 		}
