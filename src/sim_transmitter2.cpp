@@ -217,13 +217,13 @@ void SimTransmitter2::force_wave_generator_refresh()
     
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
+        WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
         wavegen->force_refresh();
     }
 
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
         wavegen_c->force_refresh();
     }
 
