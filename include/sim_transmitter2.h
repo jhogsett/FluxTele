@@ -124,57 +124,7 @@ protected:    // Common utility methods
 #endif
 
     // Centralized charge pulse logic for all simulated stations
-    virtual void send_carrier_charge_pulse(SignalMeter* signal_meter) {
-#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
-        if (!signal_meter) return;
-        int charge = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-        if (charge > 0) {
-            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff = abs(_fixed_freq - _vfo_freq);
-            if (freq_diff <= LOCK_WINDOW_HZ) {
-                signal_meter->add_charge(-charge);
-            } else {
-                signal_meter->add_charge(charge);
-            }
-        }
-
-        if (!signal_meter) return;
-        int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-        if (charge_c > 0) {
-            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff_c = abs(_fixed_freq - _vfo_freq);
-            if (freq_diff_c <= LOCK_WINDOW_HZ) {
-                signal_meter->add_charge(-charge_c);
-            } else {
-                signal_meter->add_charge(charge_c);
-            }
-        }
-#elif defined(ENABLE_GENERATOR_A)
-        if (!signal_meter) return;
-        int charge = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-        if (charge > 0) {
-            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff = abs(_fixed_freq - _vfo_freq);
-            if (freq_diff <= LOCK_WINDOW_HZ) {
-                signal_meter->add_charge(-charge);
-            } else {
-                signal_meter->add_charge(charge);
-            }
-        }
-#elif defined(ENABLE_GENERATOR_C)
-        if (!signal_meter) return;
-        int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-        if (charge_c > 0) {
-            const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-            float freq_diff_c = abs(_fixed_freq - _vfo_freq);
-            if (freq_diff_c <= LOCK_WINDOW_HZ) {
-                signal_meter->add_charge(-charge_c);
-            } else {
-                signal_meter->add_charge(charge_c);
-            }
-        }
-#endif
-    }
+    virtual void send_carrier_charge_pulse(SignalMeter* signal_meter);
 };
 
 #endif
