@@ -28,7 +28,7 @@
 #define MAX_AD9833 4
 
 // Debug control - disabled for production
-#define DEBUG_PIPELINING  // Enable for troubleshooting pipelining issues
+// #define DEBUG_PIPELINING  // Enable for troubleshooting pipelining issues
 
 // Dynamic pipelining configuration
 #define PIPELINE_LOOKAHEAD_RANGE 8000    // 8 kHz ahead/behind VFO - accommodate 7.2 kHz station placement

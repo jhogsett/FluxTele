@@ -62,11 +62,6 @@ bool SimStation2::begin(unsigned long time){
         return false;  // Failed to acquire all needed wave generators
     }
 
-    ///////////////////////////////////////////////////////////////////
-    // BAD this assumes we have realizers at index 0 and 1 not the ones 
-    // we got
-    ///////////////////////////////////////////////////////////////////
-
     // Initialize all acquired wave generators
     int realizer_index = 0;
     
@@ -119,11 +114,6 @@ void SimStation2::realize(){
         return;  // Out of audible range
     }
 
-    ///////////////////////////////////////////////////////////////////
-    // BAD this assumes we have realizers at index 0 and 1 not the ones 
-    // we got
-    ///////////////////////////////////////////////////////////////////
-
     // Set active state for all acquired wave generators
     int realizer_index = 0;
 
@@ -159,11 +149,6 @@ bool SimStation2::update(Mode *mode){
     common_frequency_update(mode);
 
     if(_enabled && has_all_realizers()){
-
-        ///////////////////////////////////////////////////////////////////
-        // BAD this assumes we have realizers at index 0 and 1 not the ones 
-        // we got
-        ///////////////////////////////////////////////////////////////////
 
         // Update frequencies for all acquired wave generators
         int realizer_index = 0;
