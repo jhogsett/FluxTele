@@ -35,7 +35,6 @@ bool SimStation2::begin(unsigned long time){
     // Initialize all acquired wave generators
     int realizer_index = 0;
     
-#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
@@ -47,8 +46,6 @@ bool SimStation2::begin(unsigned long time){
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
         wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
     }
-
-#endif
 
     // Set enabled and force frequency update with existing _vfo_freq
     // _vfo_freq should retain its value from the previous cycle
@@ -75,7 +72,6 @@ void SimStation2::realize(){
     // Set active state for all acquired wave generators
     int realizer_index = 0;
 
-#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
@@ -87,7 +83,6 @@ void SimStation2::realize(){
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
         wavegen_c->set_active_frequency(_active);
     }
-#endif
 }
 
 // returns true on successful update
@@ -99,7 +94,6 @@ bool SimStation2::update(Mode *mode){
         // Update frequencies for all acquired wave generators
         int realizer_index = 0;
 
-#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
         int realizer_a = get_realizer(realizer_index++);
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
@@ -111,7 +105,6 @@ bool SimStation2::update(Mode *mode){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
             wavegen_c->set_frequency(_frequency_c);
         }
-#endif
     }
 
     realize();
