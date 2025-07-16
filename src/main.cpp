@@ -43,6 +43,10 @@
 #include "sim_dtmf.h"
 #endif
 
+#ifdef ENABLE_DTMF2_TEST
+#include "sim_dtmf2.h"
+#endif
+
 #ifdef ENABLE_EXCHANGE_BAD_STATION
 #include "sim_exchange_bad.h"
 #endif
@@ -497,8 +501,8 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 
 #ifdef CONFIG_DTMF_TEST
 // TEST: Two DTMF stations for testing digit sequence playback (meets two-station minimum)
-SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // Fixed test phone number
-SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0, "15556781234");  // Random NANP phone numbers
+SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // Random NANP phone numbers
+SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0, "15556781234");  // Fixed test phone number
 
 SimDualTone *station_pool[2] = {
     &dtmf_station1,
@@ -508,6 +512,22 @@ SimDualTone *station_pool[2] = {
 Realization *realizations[2] = {
 	&dtmf_station1,
 	&dtmf_station2
+};
+#endif
+
+#ifdef CONFIG_DTMF2_TEST
+// TEST: Two SimDTMF2 stations in RINGBACK mode for parallel development testing
+SimDTMF2 dtmf2_station1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_RINGBACK);  // Test station 1 in RINGBACK mode
+SimDTMF2 dtmf2_station2(&wave_gen_pool, &signal_meter, 55505000.0, TELCO_RINGBACK);  // Test station 2 in RINGBACK mode
+
+SimDualTone *station_pool[2] = {
+    &dtmf2_station1,
+    &dtmf2_station2
+};
+
+Realization *realizations[2] = {
+	&dtmf2_station1,
+	&dtmf2_station2
 };
 #endif
 
@@ -625,6 +645,8 @@ bool realization_stats[1] = {false};
 bool realization_stats[2] = {false, false};  // Single SimTelco test station
 #elif defined(CONFIG_DTMF_TEST)
 bool realization_stats[2] = {false, false};  // Two DTMF test stations (meets two-station minimum)
+#elif defined(CONFIG_DTMF2_TEST)
+bool realization_stats[2] = {false, false};  // Two SimDTMF2 test stations in RINGBACK mode
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -648,6 +670,8 @@ RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CR
 #elif defined(CONFIG_SIMTELCO_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_DTMF_TEST)
+RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_DTMF2_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
@@ -677,6 +701,8 @@ StationManager station_manager(realizations, 1);  // Use optimized constructor w
 #elif defined(CONFIG_SIMTELCO_TEST)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_DTMF_TEST)
+StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+#elif defined(CONFIG_DTMF2_TEST)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
@@ -1272,6 +1298,17 @@ void loop()
 	dtmf_station1.debug_print_phone_number();
 	dtmf_station2.debug_print_phone_number();
 	Serial.println("==================================");
+#endif
+
+#ifdef CONFIG_DTMF2_TEST
+	// Initialize SimDTMF2 test stations in RINGBACK mode
+	dtmf2_station1.begin(time + random(1000));
+	dtmf2_station1.set_station_state(AUDIBLE_DT);
+	
+	dtmf2_station2.begin(time + random(2000));
+	dtmf2_station2.set_station_state(AUDIBLE_DT);
+	
+	Serial.println("SimDTMF2 stations initialized in RINGBACK mode - should hear telephone ringback tones");
 #endif
 	set_application(APP_SIMRADIO, &display);
 
