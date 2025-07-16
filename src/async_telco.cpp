@@ -42,6 +42,13 @@ void AsyncTelco::configure_timing(TelcoType type)
             _silence_max = REORDER_SILENCE_MAX;         // 250ms (0.25s)
             break;
             
+        case TELCO_DIALTONE:
+            _tone_a_duration = DIALTONE_TONE_A_DURATION; // 15000ms (15s)
+            _tone_b_duration = DIALTONE_TONE_B_DURATION; // 0ms (single tone)
+            _silence_min = DIALTONE_SILENCE_MIN;         // 2000ms (2s)
+            _silence_max = DIALTONE_SILENCE_MAX;         // 2000ms (2s)
+            break;
+            
         default:
             // Default to ring timing
             _tone_a_duration = RING_TONE_A_DURATION;

@@ -23,6 +23,12 @@
 #define REORDER_SILENCE_MIN 250      // Reorder OFF: 0.25 seconds  
 #define REORDER_SILENCE_MAX 250      // Reorder OFF: Fixed 0.25 seconds
 
+// Dial tone cadence (North American standard)
+#define DIALTONE_TONE_A_DURATION 15000  // Dial tone ON: 15.0 seconds
+#define DIALTONE_TONE_B_DURATION 0      // Dial tone: Skip TONE B entirely (set to 0)
+#define DIALTONE_SILENCE_MIN 2000       // Dial tone OFF: 2.0 seconds
+#define DIALTONE_SILENCE_MAX 2000       // Dial tone OFF: Fixed 2.0 seconds
+
 // Legacy constants for backward compatibility
 #define TELCO_TONE_A_DURATION RING_TONE_A_DURATION    
 #define TELCO_TONE_B_DURATION RING_TONE_B_DURATION       

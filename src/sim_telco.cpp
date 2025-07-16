@@ -17,6 +17,8 @@ const float SimTelco::RING_FREQ_A = 440.0f;     // 440 Hz for ring tone
 const float SimTelco::RING_FREQ_C = 480.0f;     // 480 Hz for ring tone  
 const float SimTelco::BUSY_FREQ_A = 480.0f;     // 480 Hz for busy/reorder signals
 const float SimTelco::BUSY_FREQ_C = 620.0f;     // 620 Hz for busy/reorder signals
+const float SimTelco::DIAL_FREQ_A = 350.0f;     // 350 Hz for dial tone
+const float SimTelco::DIAL_FREQ_C = 440.0f;     // 440 Hz for dial tone
 
 // mode is expected to be a derivative of VFO
 SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
@@ -153,7 +155,7 @@ bool SimTelco::step(unsigned long time){
                 apply_operator_frustration_drift();
                 // Reset frustration counter for next QSY
                 _cycles_completed = 0;
-                _cycles_until_qsy = 3 + (random(6));   // 3-8 cycles before next frustration
+                _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
             }
             break;
             
@@ -232,6 +234,11 @@ void SimTelco::setFrequencyOffsetsForType() {
         case TELCO_REORDER:
             _frequency_offset_a = BUSY_FREQ_A;  // 480 Hz
             _frequency_offset_c = BUSY_FREQ_C;  // 620 Hz
+            break;
+            
+        case TELCO_DIALTONE:
+            _frequency_offset_a = DIAL_FREQ_A;  // 350 Hz
+            _frequency_offset_c = DIAL_FREQ_C;  // 440 Hz
             break;
             
         default:
