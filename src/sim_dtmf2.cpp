@@ -133,21 +133,21 @@ bool SimDTMF2::update(Mode *mode){
 // returns true if it should keep going
 bool SimDTMF2::step(unsigned long time){
     // Handle ring cadence timing using AsyncDTMF2
-    int telco_state = _telco.step_telco(time);
+    int telco_state = _telco.step_dtmf(time);
     
     switch(telco_state) {
-        case STEP_TELCO_TURN_ON:
+        case STEP_DTMF_TURN_ON:
             _active = true;
             realize();
             send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
             break;
             
-        case STEP_TELCO_LEAVE_ON:
+        case STEP_DTMF_LEAVE_ON:
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
             break;
             
-        case STEP_TELCO_TURN_OFF:
+        case STEP_DTMF_TURN_OFF:
             _active = false;
             realize();
             // No charge pulse when carrier turns off
@@ -163,14 +163,21 @@ bool SimDTMF2::step(unsigned long time){
             }
             break;
             
-        case STEP_TELCO_LEAVE_OFF:
+        case STEP_DTMF_LEAVE_OFF:
             // Carrier remains off - no action needed
             break;
             
-        case STEP_TELCO_CHANGE_FREQ:
+        case STEP_DTMF_CHANGE_FREQ:
             // Continue transmitting but change frequency (for dual-tone systems)
             // Ring uses single tone, but this prepares for other telephony sounds
             send_carrier_charge_pulse(_signal_meter);
+            break;
+            
+        case STEP_DTMF_CYCLE_END:
+            // End of sequence - properly release wave generators using end()
+            end();  // This calls SimDualTone::end() -> Realization::end() to free realizers
+            _in_wait_delay = true;
+            _next_cycle_time = time + 3000;  // 3 second pause
             break;
     }
 
