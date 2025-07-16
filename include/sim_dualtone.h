@@ -1,10 +1,6 @@
 #ifndef __SIM_DUALTONE_H__
 #define __SIM_DUALTONE_H__
 
-// Wave generator selection for dual generator development
-#define ENABLE_GENERATOR_A  // Enable by default
-#define ENABLE_GENERATOR_C  // Enable for duplication testing
-
 // Test configuration: Offset Generator C by a small amount for verification
 #define GENERATOR_A_TEST_OFFSET 440.0  // Hz offset for testing dual generator operation
 #define GENERATOR_C_TEST_OFFSET 480.0  // Hz offset for testing dual generator operation
@@ -91,6 +87,10 @@ protected:    // Common utility methods
     bool common_begin(unsigned long time, float fixed_freq);  // Common initialization logic
     void common_frequency_update(Mode *mode);  // Common frequency calculation (mode must be VFO)
     void force_frequency_update();  // Immediately update wave generator after _fixed_freq changes
+
+    // Virtual methods for frequency offsets (allows derived classes to customize)
+    virtual float getFrequencyOffsetA() const;  // Get primary frequency offset (default uses macro)
+    virtual float getFrequencyOffsetC() const;  // Get secondary frequency offset (default uses macro)
 
     // Shared station properties (independent of wave generator)
     float _fixed_freq;  // Target frequency for this station (shared between A and B)

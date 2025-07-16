@@ -55,8 +55,8 @@ void SimDualTone::common_frequency_update(Mode *mode)
 
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
-    _frequency = raw_frequency + option_bfo_offset + GENERATOR_A_TEST_OFFSET;
-    _frequency2 = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
+    _frequency2 = raw_frequency + option_bfo_offset + getFrequencyOffsetC();
     Serial.println("------");
     Serial.println(_frequency);
     Serial.println(_frequency2);
@@ -211,7 +211,7 @@ void SimDualTone::force_frequency_update()
     // REVISIT need to apply two Telco offets here
 
     float raw_frequency = _vfo_freq - _fixed_freq;
-    _frequency = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
     
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
@@ -220,7 +220,7 @@ void SimDualTone::force_frequency_update()
     }
 
     float raw_frequency2 = _vfo_freq - _fixed_freq;
-    _frequency2 = raw_frequency2 + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    _frequency2 = raw_frequency2 + option_bfo_offset + getFrequencyOffsetC();
     
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
@@ -242,4 +242,13 @@ void SimDualTone::send_carrier_charge_pulse(SignalMeter* signal_meter) {
             signal_meter->add_charge(charge);
         }
     }
+}
+
+// Virtual methods for frequency offsets (default implementation uses macros)
+float SimDualTone::getFrequencyOffsetA() const {
+    return GENERATOR_A_TEST_OFFSET;  // Default to macro for backward compatibility
+}
+
+float SimDualTone::getFrequencyOffsetC() const {
+    return GENERATOR_C_TEST_OFFSET;  // Default to macro for backward compatibility
 }

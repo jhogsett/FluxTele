@@ -477,8 +477,8 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 
 #ifdef CONFIG_SIMTELCO_TEST
 // TEST: Single SimTelco station for testing duplicate class functionality
-SimTelco cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0);  // Test station at 55.5 MHz
-SimTelco cw_station2_test2(&wave_gen_pool, &signal_meter, 55510000.0);  // Test station at 55.501 MHz
+SimTelco cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_RING);  // Test station at 55.5 MHz
+SimTelco cw_station2_test2(&wave_gen_pool, &signal_meter, 55510000.0, TELCO_RING);  // Test station at 55.501 MHz
 
 SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1,

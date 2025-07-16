@@ -12,10 +12,19 @@
 
 #define WAIT_SECONDS2 4
 
+// Telephony frequency offset constants (authentic DTMF frequencies)
+const float SimTelco::RING_FREQ_A = 440.0f;     // 440 Hz for ring tone
+const float SimTelco::RING_FREQ_C = 480.0f;     // 480 Hz for ring tone  
+const float SimTelco::BUSY_FREQ_A = 480.0f;     // 480 Hz for busy/reorder signals
+const float SimTelco::BUSY_FREQ_C = 620.0f;     // 620 Hz for busy/reorder signals
+
 // mode is expected to be a derivative of VFO
-SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq)
-    : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter)
+SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
+    : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _telco_type(type)
 {
+    // Set frequency offsets based on telco type
+    setFrequencyOffsetsForType();
+    
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
     _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before frustration (realistic)
@@ -206,4 +215,35 @@ void SimTelco::randomize()
     // Reset timing state
     _in_wait_delay = false;
     _next_cycle_time = 0;  // Will be set properly on next cycle
+}
+
+// Set frequency offsets based on telco type
+void SimTelco::setFrequencyOffsetsForType() {
+    switch (_telco_type) {
+        case TELCO_RING:
+            _frequency_offset_a = RING_FREQ_A;  // 440 Hz
+            _frequency_offset_c = RING_FREQ_C;  // 480 Hz
+            break;
+            
+        case TELCO_BUSY:
+        case TELCO_REORDER:
+            _frequency_offset_a = BUSY_FREQ_A;  // 480 Hz
+            _frequency_offset_c = BUSY_FREQ_C;  // 620 Hz
+            break;
+            
+        default:
+            // Default to ring frequencies as fallback
+            _frequency_offset_a = RING_FREQ_A;
+            _frequency_offset_c = RING_FREQ_C;
+            break;
+    }
+}
+
+// Override frequency offset methods to use stored values instead of macros
+float SimTelco::getFrequencyOffsetA() const {
+    return _frequency_offset_a;
+}
+
+float SimTelco::getFrequencyOffsetC() const {
+    return _frequency_offset_c;
 }
