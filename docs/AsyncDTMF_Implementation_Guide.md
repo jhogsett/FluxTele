@@ -290,3 +290,47 @@ public:
 - [ ] Station lock LED correlates with audio output ✅
 
 This pattern should work for any telephony station type (busy signals, dial tones, ring back, etc.) by following the AsyncDTMF/SimDTMF architecture exactly.
+
+## Random Phone Number Generation (NANP Enhancement)
+
+### 14. Random North American Phone Number Support
+**New Feature**: SimDTMF can generate authentic NANP phone numbers automatically
+
+```cpp
+// Constructor for fixed phone number
+SimDTMF dtmf_fixed(&wave_gen_pool, &signal_meter, 55500000.0, "15556781234");
+
+// Constructor for random phone number generation  
+SimDTMF dtmf_random(&wave_gen_pool, &signal_meter, 55505000.0);  // No sequence parameter
+```
+
+**NANP Rules Implemented**:
+- Format: `1` + `NXX` + `NXX` + `XXXX` (11 digits total)
+- Area codes: Selected from realistic geographic area codes (212, 213, 214, etc.)
+- Central office codes: N=2-9, avoid reserved codes (555, 911, 411, 611)
+- Subscriber numbers: Avoid obvious patterns (0000, 1111, 1234)
+
+### 15. Randomization Integration
+**Pattern**: New phone numbers generated on each `randomize()` call
+
+```cpp
+void SimDTMF::randomize() {
+    if (_use_random_numbers) {
+        generate_random_nanp_number();          // Generate new number
+        _digit_sequence = _generated_number;    // Update sequence pointer
+        Serial.println(_generated_number);      // Debug output
+    }
+    
+    // Standard AsyncDTMF reset
+    _dtmf.reset_sequence();
+    _in_wait_delay = false;
+    _next_cycle_time = 0;
+}
+```
+
+**Benefits**:
+- Realistic geographic diversity (100+ authentic area codes)
+- NANP compliance (proper N vs X digit placement)
+- Avoids reserved/special numbers for authenticity
+- Seamless integration with existing AsyncDTMF architecture
+- Debug output shows generated numbers for verification

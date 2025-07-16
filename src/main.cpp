@@ -497,8 +497,8 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 
 #ifdef CONFIG_DTMF_TEST
 // TEST: Two DTMF stations for testing digit sequence playback (meets two-station minimum)
-SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0, "15556781234");  // Test phone number
-SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0, "19995551212");  // Second test number
+SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0, "15556781234");  // Fixed test phone number
+SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0);  // Random NANP phone numbers
 
 SimDualTone *station_pool[2] = {
     &dtmf_station1,
@@ -1266,6 +1266,12 @@ void loop()
 	dtmf_station2.set_station_state(AUDIBLE_DT);
 	
 	Serial.println("DTMF stations initialized - should hear phone number sequences");
+	
+	// Debug output to show the phone numbers being dialed
+	Serial.println("=== DTMF Station Phone Numbers ===");
+	dtmf_station1.debug_print_phone_number();
+	dtmf_station2.debug_print_phone_number();
+	Serial.println("==================================");
 #endif
 	set_application(APP_SIMRADIO, &display);
 

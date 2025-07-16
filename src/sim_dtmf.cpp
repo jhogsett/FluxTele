@@ -60,11 +60,30 @@ const int SimDTMF::DIGIT_TO_COL[16] = {
     3   // D -> COL4
 };
 
+// Constructor for fixed phone number
 SimDTMF::SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, const char* sequence)
     : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _digit_sequence(sequence)
 {
     _current_row_freq = 0.0f;
     _current_col_freq = 0.0f;
+    _use_random_numbers = false;  // Using fixed sequence
+    
+    // Initialize wait delay management (matching SimTelco pattern)
+    _in_wait_delay = false;
+    _next_cycle_time = 0;
+}
+
+// Constructor for random phone number generation
+SimDTMF::SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq)
+    : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _digit_sequence(nullptr)
+{
+    _current_row_freq = 0.0f;
+    _current_col_freq = 0.0f;
+    _use_random_numbers = true;   // Using random generation
+    
+    // Generate initial random phone number
+    generate_random_nanp_number();
+    _digit_sequence = _generated_number;  // Point to generated number
     
     // Initialize wait delay management (matching SimTelco pattern)
     _in_wait_delay = false;
@@ -96,6 +115,12 @@ bool SimDTMF::begin(unsigned long time) {
     _enabled = true;
     force_frequency_update();
     realize();  // CRITICAL: Set active state for audio output!
+    
+    // Debug output for phone number (only when starting new sequence)
+    if (_use_random_numbers) {
+        Serial.print("DTMF: Dialing random number: ");
+        Serial.println(_generated_number);
+    }
     
     // Start AsyncDTMF sequence (matching SimTelco pattern with AsyncTelco)
     _dtmf.start_dtmf_transmission(_digit_sequence, true);
@@ -245,12 +270,89 @@ int SimDTMF::char_to_digit_index(char c) {
 }
 
 void SimDTMF::randomize() {
+    // Generate new random phone number if using random generation
+    if (_use_random_numbers) {
+        generate_random_nanp_number();
+        _digit_sequence = _generated_number;  // Update pointer to new number
+        Serial.print("DTMF: Generated new random number: ");
+        Serial.println(_generated_number);
+    }
+    
     // Reset AsyncDTMF sequence
     _dtmf.reset_sequence();
     
     // Reset wait delay state
     _in_wait_delay = false;
     _next_cycle_time = 0;
+}
+
+void SimDTMF::generate_random_nanp_number() {
+    // Generate authentic North American Numbering Plan (NANP) phone number
+    // Format: 1 + NXX + NXX + XXXX (11 digits total)
+    // Where N = 2-9, X = 0-9
+    
+    // Country code (always 1 for NANP)
+    char country_code = '1';
+    
+    // Area code: NXX format (first digit 2-9, others 0-9)
+    // Use realistic area codes with geographic diversity
+    int realistic_area_codes[] = {
+        212, 213, 214, 215, 216, 217, 301, 302, 303, 304, 305, 307, 309,
+        312, 313, 314, 315, 316, 317, 318, 319, 401, 402, 403, 404, 405,
+        406, 407, 408, 409, 410, 412, 413, 414, 415, 416, 417, 418, 419,
+        501, 502, 503, 504, 505, 507, 508, 509, 510, 512, 513, 514, 515,
+        516, 517, 518, 519, 601, 602, 603, 604, 605, 606, 607, 608, 609,
+        610, 612, 613, 614, 615, 616, 617, 618, 619, 701, 702, 703, 704,
+        705, 706, 707, 708, 709, 712, 713, 714, 715, 716, 717, 718, 719,
+        801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 812, 813, 814,
+        815, 816, 817, 818, 819, 901, 902, 903, 904, 905, 906, 907, 908,
+        909, 910, 912, 913, 914, 915, 916, 917, 918, 919
+    };
+    
+    int area_code = realistic_area_codes[random(sizeof(realistic_area_codes) / sizeof(realistic_area_codes[0]))];
+    
+    // Central office code (prefix): NXX format (first digit 2-9, others 0-9)
+    // Avoid 555 prefix (traditionally reserved for fiction) and special codes
+    int prefix_first = 2 + random(8);  // 2-9
+    int prefix_second, prefix_third;
+    
+    do {
+        prefix_second = random(10);    // 0-9  
+        prefix_third = random(10);     // 0-9
+        
+        int prefix = prefix_first * 100 + prefix_second * 10 + prefix_third;
+        if (prefix == 555 || prefix == 911 || prefix == 411 || prefix == 611) {
+            continue;  // Avoid reserved prefixes
+        }
+        break;
+    } while (true);
+    
+    // Subscriber number (suffix): XXXX format (all digits 0-9)
+    // Avoid patterns like 0000, 1111, 1234 for more realism
+    int suffix_1, suffix_2, suffix_3, suffix_4;
+    
+    do {
+        suffix_1 = random(10);
+        suffix_2 = random(10);
+        suffix_3 = random(10);
+        suffix_4 = random(10);
+        
+        // Check for obviously fake patterns
+        if (suffix_1 == suffix_2 && suffix_2 == suffix_3 && suffix_3 == suffix_4) {
+            continue;  // Avoid 0000, 1111, etc.
+        }
+        if (suffix_1 == 1 && suffix_2 == 2 && suffix_3 == 3 && suffix_4 == 4) {
+            continue;  // Avoid 1234
+        }
+        break;
+    } while (true);
+    
+    // Format as complete 11-digit NANP number: 1NXXNXXXXXX
+    snprintf(_generated_number, sizeof(_generated_number), "%c%03d%d%d%d%d%d%d%d",
+             country_code,
+             area_code,
+             prefix_first, prefix_second, prefix_third,
+             suffix_1, suffix_2, suffix_3, suffix_4);
 }
 
 // Override frequency offset methods to use DTMF frequencies
@@ -260,4 +362,14 @@ float SimDTMF::getFrequencyOffsetA() const {
 
 float SimDTMF::getFrequencyOffsetC() const {
     return _current_col_freq;  // Column frequency
+}
+
+void SimDTMF::debug_print_phone_number() const {
+    if (_use_random_numbers) {
+        Serial.print("Random DTMF Phone Number: ");
+        Serial.println(_generated_number);
+    } else {
+        Serial.print("Fixed DTMF Sequence: ");
+        Serial.println(_digit_sequence);
+    }
 }
