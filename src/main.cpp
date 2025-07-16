@@ -39,6 +39,10 @@
 #include "sim_telco.h"
 #endif
 
+#ifdef ENABLE_DTMF_TEST
+#include "sim_dtmf.h"
+#endif
+
 #ifdef ENABLE_EXCHANGE_BAD_STATION
 #include "sim_exchange_bad.h"
 #endif
@@ -491,6 +495,22 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 };
 #endif
 
+#ifdef CONFIG_DTMF_TEST
+// TEST: Two DTMF stations for testing digit sequence playback (meets two-station minimum)
+SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0, "15556781234");  // Test phone number
+SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0, "19995551212");  // Second test number
+
+SimDualTone *station_pool[2] = {
+    &dtmf_station1,
+    &dtmf_station2
+};
+
+Realization *realizations[2] = {
+	&dtmf_station1,
+	&dtmf_station2
+};
+#endif
+
 #ifdef CONFIG_DEV_LOW_RAM
 // DEVELOPMENT: Low RAM configuration - only essential stations for development
 #ifdef ENABLE_MORSE_STATION
@@ -603,6 +623,8 @@ Realization *realizations[1] = {
 bool realization_stats[1] = {false};
 #elif defined(CONFIG_SIMTELCO_TEST)
 bool realization_stats[2] = {false, false};  // Single SimTelco test station
+#elif defined(CONFIG_DTMF_TEST)
+bool realization_stats[2] = {false, false};  // Two DTMF test stations (meets two-station minimum)
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -624,6 +646,8 @@ bool realization_stats[4] = {false, false, false, false};
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_SIMTELCO_TEST)
+RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_DTMF_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
@@ -651,6 +675,8 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 #ifdef CONFIG_MINIMAL_CW
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_SIMTELCO_TEST)
+StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+#elif defined(CONFIG_DTMF_TEST)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
@@ -794,7 +820,7 @@ void setup(){
 	AD4.setMode(MD_AD9833::MODE_SINE);
 
 	// Initialize StationManager with dynamic pipelining
-#ifdef CONFIG_PAGER2_TEST
+#if defined(CONFIG_PAGER2_TEST) || defined(CONFIG_DTMF_TEST)
 	// For simple single-station testing, disable dynamic pipelining
 	// This ensures the station starts immediately without requiring tuning knob interaction
 	station_manager.enableDynamicPipelining(false);
@@ -1229,6 +1255,17 @@ void loop()
 	// DEBUG: Test dual generator acquisition capability
 	delay(2000);  // Wait for initialization to settle
 	pager2_test.debug_test_dual_generator_acquisition();
+#endif
+
+#ifdef CONFIG_DTMF_TEST
+	// Initialize DTMF test stations for digit sequence playback
+	dtmf_station1.begin(time + random(1000));
+	dtmf_station1.set_station_state(AUDIBLE_DT);
+	
+	dtmf_station2.begin(time + random(2000));
+	dtmf_station2.set_station_state(AUDIBLE_DT);
+	
+	Serial.println("DTMF stations initialized - should hear phone number sequences");
 #endif
 	set_application(APP_SIMRADIO, &display);
 

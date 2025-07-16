@@ -19,7 +19,7 @@
 #define MAX_STATIONS 3
 #elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE) || defined(CONFIG_PAGER2_TEST)
 #define MAX_STATIONS 1
-#elif defined(CONFIG_SIMTELCO_TEST)
+#elif defined(CONFIG_SIMTELCO_TEST) || defined(CONFIG_DTMF_TEST)
 #define MAX_STATIONS 2
 #else
 #define MAX_STATIONS 4  // Default fallback

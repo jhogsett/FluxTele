@@ -32,7 +32,8 @@
 // #define CONFIG_FOUR_JAMMER      // Four Jammer stations for interference testing
 // #define CONFIG_PAGER2_TEST      // Single dual-tone pager station for testing dual wave generators
 // #define CONFIG_MINIMAL_CW       // Single CW station (minimal memory) - CONFIRMED: Single station causes restarts
-#define CONFIG_SIMTELCO_TEST // Single SimTelco station for testing duplicate class functionality
+// #define CONFIG_SIMTELCO_TEST // Single SimTelco station for testing duplicate class functionality
+#define CONFIG_DTMF_TEST        // Single DTMF station for testing digit sequence playback
 
 // ===== LISTENING PLEASURE CONFIGURATION =====
 // #define CONFIG_CW_CLUSTER       // Four CW stations clustered in 40m for listening pleasure
@@ -221,6 +222,12 @@
 #ifdef CONFIG_SIMTELCO_TEST
     // Test: Single SimTelco station for testing duplicate class functionality
     #define ENABLE_SIMTELCO_TEST
+    // All other stations disabled for focused testing
+#endif
+
+#ifdef CONFIG_DTMF_TEST
+    // Test: Single DTMF station for testing digit sequence playback
+    #define ENABLE_DTMF_TEST
     // All other stations disabled for focused testing
 #endif
 
