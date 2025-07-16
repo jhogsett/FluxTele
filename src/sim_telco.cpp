@@ -18,7 +18,7 @@ SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float 
 {
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
-    _cycles_until_qsy = 3 + (random(6));   // 3-8 cycles before frustration (realistic)
+    _cycles_until_qsy = 20 + (random(20));   // 3-8 cycles before frustration (realistic)
 
     // Initialize timing state
     _in_wait_delay = false;

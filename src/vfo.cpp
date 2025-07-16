@@ -4,7 +4,7 @@
 #include "buffers.h"
 #include "signal_meter.h"
 #include "station_config.h"
-#include "saved_data.h"  // For option_bfo_offset
+#include "saved_data.h"
 
 VFO::VFO(const char *title, float frequency, unsigned long step, RealizationPool *realization_pool) : Mode(title)
 {

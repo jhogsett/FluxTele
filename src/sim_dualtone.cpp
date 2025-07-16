@@ -1,7 +1,7 @@
 #include "sim_dualtone.h"
 #include "wavegen.h"
 #include "vfo.h"
-#include "saved_data.h"  // For option_bfo_offset
+#include "saved_data.h"
 
 SimDualTone::SimDualTone(WaveGenPool *wave_gen_pool, float fixed_freq) 
     : Realization(wave_gen_pool, (int)(fixed_freq / 1000), 
@@ -51,19 +51,11 @@ void SimDualTone::common_frequency_update(Mode *mode)
     
     // Calculate raw frequency difference (used for signal meter - no BFO offset)
     float raw_frequency = _vfo_freq - _fixed_freq;
+    Serial.println(raw_frequency);
+
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
     _frequency = raw_frequency + option_bfo_offset;
-
-    // // Note: mode is expected to be a VFO object
-    // VFO *vfo_c = static_cast<VFO*>(mode);
-    // _vfo_freq = float(vfo_c->_frequency) + (vfo_c->_sub_frequency / 10.0);
-    
-    // // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    // float raw_frequency2 = _vfo_freq - _fixed_freq;
-      // Add BFO offset for comfortable audio tuning + test offset for dual generator verification
-    // This shifts the audio frequency without affecting signal meter calculations
-    // _frequency2 = raw_frequency2 + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
     _frequency2 = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
 }
 
@@ -84,22 +76,6 @@ bool SimDualTone::check_frequency_bounds()
                     WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
                     wavegen->set_frequency(SILENT_FREQ_DT, true);
                     wavegen->set_frequency(SILENT_FREQ_DT, false);
-                }
-            }
-        }
-    } else {
-        any_in_bounds = true;
-    }
-
-    if(_frequency2 > MAX_AUDIBLE_FREQ_DT || _frequency2 < MIN_AUDIBLE_FREQ_DT){
-        if(_enabled){
-            _enabled = false;
-            // Set all generators to silent frequency
-            for(int i = 0; i < get_realizer_count(); i++) {
-                int realizer = get_realizer(i);
-                if(realizer != -1) {
-                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
-                    wavegen->set_frequency(SILENT_FREQ_DT);
                 }
             }
         }
@@ -241,7 +217,7 @@ void SimDualTone::force_frequency_update()
     }
 
     float raw_frequency2 = _vfo_freq - _fixed_freq;
-    _frequency2 = raw_frequency2 + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    _frequency2 = raw_frequency2 + option_bfo_offset;
     
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
