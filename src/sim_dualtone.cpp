@@ -33,19 +33,6 @@ SimDualTone::SimDualTone(WaveGenPool *wave_gen_pool, float fixed_freq)
     
     // // Initialize dynamic station management state
     // _station_state_c = DORMANT_DT;
-#elif defined(ENABLE_GENERATOR_A)
-    // Initialize Wave Generator A variables
-    _frequency = 0.0;
-    _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
-    
-    // Initialize dynamic station management state
-    _station_state = DORMANT_DT;
-#elif defined(ENABLE_GENERATOR_C)
-    // Initialize Wave Generator C variables
-    _frequency_c = 0.0;
-    
-    // Initialize dynamic station management state
-    _station_state_c = DORMANT_DT;
 #endif
 }
 
@@ -67,10 +54,6 @@ bool SimDualTone::common_begin(unsigned long time, float fixed_freq)
 #if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)
     _frequency = 0.0;
 
-    _frequency_c = 0.0;
-#elif defined(ENABLE_GENERATOR_A)
-    _frequency = 0.0;
-#elif defined(ENABLE_GENERATOR_C)
     _frequency_c = 0.0;
 #endif
     
@@ -100,26 +83,6 @@ void SimDualTone::common_frequency_update(Mode *mode)
     // This shifts the audio frequency without affecting signal meter calculations
     // _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
     _frequency_c = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
-#elif defined(ENABLE_GENERATOR_A)
-    // Note: mode is expected to be a VFO object
-    VFO *vfo = static_cast<VFO*>(mode);
-    _vfo_freq = float(vfo->_frequency) + (vfo->_sub_frequency / 10.0);
-    
-    // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    float raw_frequency = _vfo_freq - _fixed_freq;
-      // Add BFO offset for comfortable audio tuning
-    // This shifts the audio frequency without affecting signal meter calculations
-    _frequency = raw_frequency + option_bfo_offset;
-#elif defined(ENABLE_GENERATOR_C)
-    // Note: mode is expected to be a VFO object
-    VFO *vfo_c = static_cast<VFO*>(mode);
-    _vfo_freq = float(vfo_c->_frequency) + (vfo_c->_sub_frequency / 10.0);
-    
-    // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    float raw_frequency_c = _vfo_freq - _fixed_freq;
-      // Add BFO offset for comfortable audio tuning + test offset for dual generator verification
-    // This shifts the audio frequency without affecting signal meter calculations
-    _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
 #endif
 }
 
@@ -146,39 +109,6 @@ bool SimDualTone::check_frequency_bounds()
         any_in_bounds = true;
     }
 
-    if(_frequency_c > MAX_AUDIBLE_FREQ_DT || _frequency_c < MIN_AUDIBLE_FREQ_DT){
-        if(_enabled){
-            _enabled = false;
-            // Set all generators to silent frequency
-            for(int i = 0; i < get_realizer_count(); i++) {
-                int realizer = get_realizer(i);
-                if(realizer != -1) {
-                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
-                    wavegen->set_frequency(SILENT_FREQ_DT);
-                }
-            }
-        }
-    } else {
-        any_in_bounds = true;
-    }
-#elif defined(ENABLE_GENERATOR_A)
-    if(_frequency > MAX_AUDIBLE_FREQ_DT || _frequency < MIN_AUDIBLE_FREQ_DT){
-        if(_enabled){
-            _enabled = false;
-            // Set all generators to silent frequency
-            for(int i = 0; i < get_realizer_count(); i++) {
-                int realizer = get_realizer(i);
-                if(realizer != -1) {
-                    WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
-                    wavegen->set_frequency(SILENT_FREQ_DT, true);
-                    wavegen->set_frequency(SILENT_FREQ_DT, false);
-                }
-            }
-        }
-    } else {
-        any_in_bounds = true;
-    }
-#elif defined(ENABLE_GENERATOR_C)
     if(_frequency_c > MAX_AUDIBLE_FREQ_DT || _frequency_c < MIN_AUDIBLE_FREQ_DT){
         if(_enabled){
             _enabled = false;
@@ -241,20 +171,6 @@ void SimDualTone::force_wave_generator_refresh()
 //         wavegen_c->force_refresh();
 //     }
 
-#elif defined(ENABLE_GENERATOR_A)
-    // Force wave generator hardware update regardless of cached state
-    // This is needed when returning to SimRadio after application switches
-    if(_realizer != -1) {
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(_realizer);
-        wavegen->force_refresh();
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    // Force wave generator hardware update regardless of cached state
-    // This is needed when returning to SimRadio after application switches
-    if(_realizer != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(_realizer);
-        wavegen_c->force_refresh();
-    }
 #endif
 }
 
@@ -280,14 +196,6 @@ bool SimDualTone::reinitialize(unsigned long time, float fixed_freq)
     // Reset Wave Generator C state
     _frequency_c = 0.0;
     // _station_state_c = ACTIVE_DT;  // Station is now active at new frequency
-#elif defined(ENABLE_GENERATOR_A)
-    // Reset Wave Generator A state
-    _frequency = 0.0;
-    _station_state = ACTIVE_DT;  // Station is now active at new frequency
-#elif defined(ENABLE_GENERATOR_C)
-    // Reset Wave Generator C state
-    _frequency_c = 0.0;
-    _station_state_c = ACTIVE_DT;  // Station is now active at new frequency
 #endif
     
     // Start the station with the new frequency
@@ -330,28 +238,6 @@ void SimDualTone::set_station_state(DualToneState new_state)
     //         end();  // This will free the realizer
     //     }
     // }
-#elif defined(ENABLE_GENERATOR_A)
-    DualToneState old_state = _station_state;
-    _station_state = new_state;
-    
-    // Handle state transition logic
-    if(old_state == AUDIBLE_DT && new_state != AUDIBLE_DT) {
-        // Losing AD9833 generator - release it
-        if(_realizer != -1) {
-            end();  // This will free the realizer
-        }
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    DualToneState old_state_c = _station_state_c;
-    _station_state_c = new_state;
-    
-    // Handle state transition logic
-    if(old_state_c == AUDIBLE_DT && new_state != AUDIBLE_DT) {
-        // Losing AD9833 generator - release it
-        if(_realizer != -1) {
-            end();  // This will free the realizer
-        }
-    }
 #endif
 
     // Note: Gaining AD9833 generator (ACTIVE/SILENT -> AUDIBLE) will be handled
@@ -364,10 +250,6 @@ DualToneState SimDualTone::get_station_state() const
     return _station_state;
 
     // return _station_state_c;
-#elif defined(ENABLE_GENERATOR_A)
-    return _station_state;
-#elif defined(ENABLE_GENERATOR_C)
-    return _station_state_c;
 #endif
 }
 
@@ -377,10 +259,6 @@ bool SimDualTone::is_audible() const
     return _station_state == AUDIBLE_DT;
     
     // return _station_state_c == AUDIBLE_DT;
-#elif defined(ENABLE_GENERATOR_A)
-    return _station_state == AUDIBLE_DT;
-#elif defined(ENABLE_GENERATOR_C)
-    return _station_state_c == AUDIBLE_DT;
 #endif
 }
 
@@ -435,26 +313,6 @@ void SimDualTone::force_frequency_update()
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
         wavegen_c->set_frequency(_frequency_c);
     }
-#elif defined(ENABLE_GENERATOR_A)
-    // Update Generator A
-    float raw_frequency = _vfo_freq - _fixed_freq;
-    _frequency = raw_frequency + option_bfo_offset;
-    
-    int realizer_a = get_realizer(realizer_index++);
-    if(realizer_a != -1) {
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen->set_frequency(_frequency);
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    // Update Generator C (with test offset)
-    float raw_frequency_c = _vfo_freq - _fixed_freq;
-    _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
-    
-    int realizer_c = get_realizer(realizer_index++);
-    if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(_frequency_c);
-    }
 #endif
 }
 
@@ -474,30 +332,6 @@ void SimDualTone::send_carrier_charge_pulse(SignalMeter* signal_meter) {
     }
 
     // if (!signal_meter) return;
-    int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-    if (charge_c > 0) {
-        const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-        float freq_diff_c = abs(_fixed_freq - _vfo_freq);
-        if (freq_diff_c <= LOCK_WINDOW_HZ) {
-            signal_meter->add_charge(-charge_c);
-        } else {
-            signal_meter->add_charge(charge_c);
-        }
-    }
-#elif defined(ENABLE_GENERATOR_A)
-    if (!signal_meter) return;
-    int charge = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-    if (charge > 0) {
-        const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-        float freq_diff = abs(_fixed_freq - _vfo_freq);
-        if (freq_diff <= LOCK_WINDOW_HZ) {
-            signal_meter->add_charge(-charge);
-        } else {
-            signal_meter->add_charge(charge);
-        }
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    if (!signal_meter) return;
     int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
     if (charge_c > 0) {
         const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)

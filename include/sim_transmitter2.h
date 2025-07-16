@@ -109,18 +109,6 @@ protected:    // Common utility methods
     
     // // Dynamic station management state
     // StationState2 _station_state_c;  // Current state in dynamic management system
-#elif defined(ENABLE_GENERATOR_A)
-    // Wave Generator A variables
-    float _frequency;   // Current frequency difference from VFO
-    
-    // Dynamic station management state
-    StationState2 _station_state;  // Current state in dynamic management system
-#elif defined(ENABLE_GENERATOR_C)
-    // Wave Generator C variables
-    float _frequency_c;   // Current frequency difference from VFO
-    
-    // Dynamic station management state
-    StationState2 _station_state_c;  // Current state in dynamic management system
 #endif
 
     // Centralized charge pulse logic for all simulated stations

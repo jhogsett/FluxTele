@@ -48,18 +48,6 @@ bool SimStation2::begin(unsigned long time){
         wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
     }
 
-#elif defined(ENABLE_GENERATOR_A)
-    int realizer_a = get_realizer(realizer_index++);
-    if(realizer_a != -1) {
-        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_frequency(SPACE_FREQUENCY2, false);
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    int realizer_c = get_realizer(realizer_index++);
-    if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
-    }
 #endif
 
     // Set enabled and force frequency update with existing _vfo_freq
@@ -99,18 +87,6 @@ void SimStation2::realize(){
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
         wavegen_c->set_active_frequency(_active);
     }
-#elif defined(ENABLE_GENERATOR_A)
-    int realizer_a = get_realizer(realizer_index++);
-    if(realizer_a != -1) {
-        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_active_frequency(_active);
-    }
-#elif defined(ENABLE_GENERATOR_C)
-    int realizer_c = get_realizer(realizer_index++);
-    if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_active_frequency(_active);
-    }
 #endif
 }
 
@@ -130,18 +106,6 @@ bool SimStation2::update(Mode *mode){
             wavegen_a->set_frequency(_frequency);
         }
 
-        int realizer_c = get_realizer(realizer_index++);
-        if(realizer_c != -1){
-            WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-            wavegen_c->set_frequency(_frequency_c);
-        }
-#elif defined(ENABLE_GENERATOR_A)
-        int realizer_a = get_realizer(realizer_index++);
-        if(realizer_a != -1){
-            WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-            wavegen_a->set_frequency(_frequency);
-        }
-#elif defined(ENABLE_GENERATOR_C)
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
