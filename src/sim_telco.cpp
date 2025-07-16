@@ -7,13 +7,13 @@
 #include "vfo.h"
 #include "wavegen.h"
 #include "wave_gen_pool.h"
-#include "sim_station2.h"
+#include "sim_telco.h"
 #include "signal_meter.h"
 
 #define WAIT_SECONDS2 4
 
 // mode is expected to be a derivative of VFO
-SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq)
+SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq)
     : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter)
 {
     // Initialize operator frustration drift tracking
@@ -25,7 +25,7 @@ SimStation2::SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, 
     _next_cycle_time = 0;
 }
 
-bool SimStation2::begin(unsigned long time){
+bool SimTelco::begin(unsigned long time){
     // Attempt to acquire all required realizers atomically
     // The new Realization::begin() handles dual generator coordination automatically
     if(!common_begin(time, _fixed_freq)) {
@@ -60,7 +60,7 @@ bool SimStation2::begin(unsigned long time){
     return true;
 }
 
-void SimStation2::realize(){
+void SimTelco::realize(){
     if(!has_all_realizers()) {
         return;  // No WaveGens allocated
     }
@@ -86,7 +86,7 @@ void SimStation2::realize(){
 }
 
 // returns true on successful update
-bool SimStation2::update(Mode *mode){
+bool SimTelco::update(Mode *mode){
     common_frequency_update(mode);
 
     if(_enabled && has_all_realizers()){
@@ -113,7 +113,7 @@ bool SimStation2::update(Mode *mode){
 
 // call periodically to keep realization dynamic
 // returns true if it should keep going
-bool SimStation2::step(unsigned long time){
+bool SimTelco::step(unsigned long time){
     // Handle ring cadence timing using AsyncTelco
     int telco_state = _telco.step_telco(time);
     
@@ -172,12 +172,12 @@ bool SimStation2::step(unsigned long time){
 }
 
 // Set station into retry state (used when initialization fails)
-void SimStation2::set_retry_state(unsigned long next_try_time) {
+void SimTelco::set_retry_state(unsigned long next_try_time) {
     _in_wait_delay = true;
     _next_cycle_time = next_try_time;
 }
 
-void SimStation2::apply_operator_frustration_drift()
+void SimTelco::apply_operator_frustration_drift()
 {
     // Move to a new frequency as if a whole new operator is on the air
     // Realistic amateur radio operator frequency adjustment
@@ -193,7 +193,7 @@ void SimStation2::apply_operator_frustration_drift()
     force_frequency_update();
 }
 
-void SimStation2::randomize()
+void SimTelco::randomize()
 {
     // Re-randomize station properties for realistic relocation behavior
     

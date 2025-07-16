@@ -1,5 +1,5 @@
-#ifndef __SIM_STATION2_H__
-#define __SIM_STATION2_H__
+#ifndef __SIM_SIMTELCO_H__
+#define __SIM_SIMTELCO_H__
 
 // Wave generator selection for dual generator development
 #define ENABLE_GENERATOR_A  // Enable by default
@@ -12,10 +12,10 @@ class SignalMeter; // Forward declaration
 
 #define SPACE_FREQUENCY2 SILENT_FREQ_DT  // Use the DualTone silent frequency constant
 
-class SimStation2 : public SimDualTone
+class SimTelco : public SimDualTone
 {
 public:
-    SimStation2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
+    SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
     virtual bool begin(unsigned long time) override;
     
     virtual bool update(Mode *mode) override;

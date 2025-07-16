@@ -2,7 +2,7 @@
 
 ### Current State
 
-- SimTransmitter and SimStation have been duplicated to `SimTransmitter2` and `SimStation2`
+- SimTransmitter and SimStation have been duplicated to `SimTransmitter2` and `SimTelco`
 - They, along with `Realization` class, have been modified to support multiple AD9833 wave generators per station
     - In the case of Realization class, it can handle requests from 1 up to the max realizers
     - In the case of SimTransmitter2 there are provisions for using two generators per station
@@ -22,9 +22,9 @@
 
 IMPORTANT NOTE: While working on this phase, we need to make small incremental improvements that are verified on the device before continuing. The last time this transition was attempted, we lost dual-tone support and introduced several old bugs.
 
-2. Transition `SimStation2` to `SimRing` to demonstrate one simple Telco simulation
+2. Transition `SimTelco` to `SimRing` to demonstrate one simple Telco simulation
     - this is a large change:
-        - `SimStation2` no longer needs `AsyncMorse`
+        - `SimTelco` no longer needs `AsyncMorse`
         - There is an earlier developed `AsyncTelco` class for sequencing typical dual-tone Telco sounds that may have been developed to the point of working properly. 
         - It needs it's own set of frequency offets that need to be applied (similar to the 100 Hz temporary hack does mentioned above). In this case 440 Hz and 480 Hz.
             - Because the audible frequency calculations are occuring in `SimDualTone` (formerly `SimTransmitter2`) it may make sense to support those necessary offsets direct into `SimDualTone` 

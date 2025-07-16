@@ -1,5 +1,5 @@
 1. restart with clean code from git
-2. create duplicates of SimTransmitter and SimStation as SimTransmitter2 and SimStation2. These will be used as probe classes so that we can later duplicate their wave generator handling code into "A" and "B" #ifdef guarded cases and dianose why things break down when we try to work with two generators together. But for now they should be identical copies and function exactly the same as the originals with only the class names renamed (no variable or code changes yet).
+2. create duplicates of SimTransmitter and SimStation as SimTransmitter2 and SimTelco. These will be used as probe classes so that we can later duplicate their wave generator handling code into "A" and "B" #ifdef guarded cases and dianose why things break down when we try to work with two generators together. But for now they should be identical copies and function exactly the same as the originals with only the class names renamed (no variable or code changes yet).
 3. create a single station configuration with the duplicated SimStation and test on the device to prove it works identically
 4. identify the variables and methods in both new classes that touch the wave generators, either directly or indirectly
 5. add #ifdef guards around all of those cases, with the guard enabled

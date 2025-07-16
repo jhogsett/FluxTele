@@ -35,8 +35,8 @@
 #include "sim_station.h"
 #endif
 
-#ifdef ENABLE_SIMSTATION2_TEST
-#include "sim_station2.h"
+#ifdef ENABLE_SIMTELCO_TEST
+#include "sim_telco.h"
 #endif
 
 #ifdef ENABLE_EXCHANGE_BAD_STATION
@@ -475,10 +475,10 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 };
 #endif
 
-#ifdef CONFIG_SIMSTATION2_TEST
-// TEST: Single SimStation2 station for testing duplicate class functionality
-SimStation2 cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0);  // Test station at 55.5 MHz
-SimStation2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0);  // Test station at 55.501 MHz
+#ifdef CONFIG_SIMTELCO_TEST
+// TEST: Single SimTelco station for testing duplicate class functionality
+SimTelco cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0);  // Test station at 55.5 MHz
+SimTelco cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0);  // Test station at 55.501 MHz
 
 SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1,
@@ -601,8 +601,8 @@ Realization *realizations[1] = {
 // Realization status array - sized based on configuration
 #ifdef CONFIG_MINIMAL_CW
 bool realization_stats[1] = {false};
-#elif defined(CONFIG_SIMSTATION2_TEST)
-bool realization_stats[2] = {false, false};  // Single SimStation2 test station
+#elif defined(CONFIG_SIMTELCO_TEST)
+bool realization_stats[2] = {false, false};  // Single SimTelco test station
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -623,7 +623,7 @@ bool realization_stats[4] = {false, false, false, false};
 
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
-#elif defined(CONFIG_SIMSTATION2_TEST)
+#elif defined(CONFIG_SIMTELCO_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
@@ -650,7 +650,7 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 
 #ifdef CONFIG_MINIMAL_CW
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
-#elif defined(CONFIG_SIMSTATION2_TEST)
+#elif defined(CONFIG_SIMTELCO_TEST)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
