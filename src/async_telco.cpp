@@ -21,11 +21,11 @@ AsyncTelco::AsyncTelco()
 void AsyncTelco::configure_timing(TelcoType type)
 {
     switch (type) {
-        case TELCO_RING:
-            _tone_a_duration = RING_TONE_A_DURATION;   // 2000ms (2s)
-            _tone_b_duration = RING_TONE_B_DURATION;   // 0ms (single tone)
-            _silence_min = RING_SILENCE_MIN;           // 4000ms (4s)
-            _silence_max = RING_SILENCE_MAX;           // 4000ms (4s)
+        case TELCO_RINGBACK:
+            _tone_a_duration = RINGBACK_TONE_A_DURATION;   // 2000ms (2s)
+            _tone_b_duration = RINGBACK_TONE_B_DURATION;   // 0ms (single tone)
+            _silence_min = RINGBACK_SILENCE_MIN;           // 4000ms (4s)
+            _silence_max = RINGBACK_SILENCE_MAX;           // 4000ms (4s)
             break;
             
         case TELCO_BUSY:
@@ -50,11 +50,11 @@ void AsyncTelco::configure_timing(TelcoType type)
             break;
             
         default:
-            // Default to ring timing
-            _tone_a_duration = RING_TONE_A_DURATION;
-            _tone_b_duration = RING_TONE_B_DURATION;
-            _silence_min = RING_SILENCE_MIN;
-            _silence_max = RING_SILENCE_MAX;
+            // Default to ringback timing
+            _tone_a_duration = RINGBACK_TONE_A_DURATION;
+            _tone_b_duration = RINGBACK_TONE_B_DURATION;
+            _silence_min = RINGBACK_SILENCE_MIN;
+            _silence_max = RINGBACK_SILENCE_MAX;
             break;
     }
 }

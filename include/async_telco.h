@@ -5,11 +5,11 @@
 #include "telco_types.h"
 
 // Ring/Telco timing constants (in milliseconds) - now supports multiple patterns
-// Ring cadence (North American standard)
-#define RING_TONE_A_DURATION 2000    // Ring ON: 2.0 seconds 
-#define RING_TONE_B_DURATION 0       // Ring: Skip TONE B entirely (set to 0)
-#define RING_SILENCE_MIN 4000        // Ring OFF: 4.0 seconds
-#define RING_SILENCE_MAX 4000        // Ring OFF: Fixed 4.0 seconds (no randomization)
+// Ringback cadence (North American standard)
+#define RINGBACK_TONE_A_DURATION 2000    // Ringback ON: 2.0 seconds 
+#define RINGBACK_TONE_B_DURATION 0       // Ringback: Skip TONE B entirely (set to 0)
+#define RINGBACK_SILENCE_MIN 4000        // Ringback OFF: 4.0 seconds
+#define RINGBACK_SILENCE_MAX 4000        // Ringback OFF: Fixed 4.0 seconds (no randomization)
 
 // Busy cadence (North American standard)
 #define BUSY_TONE_A_DURATION 500     // Busy ON: 0.5 seconds
@@ -30,11 +30,17 @@
 #define DIALTONE_SILENCE_MAX 2000       // Dial tone OFF: Fixed 2.0 seconds
 
 // Legacy constants for backward compatibility
-#define TELCO_TONE_A_DURATION RING_TONE_A_DURATION    
-#define TELCO_TONE_B_DURATION RING_TONE_B_DURATION       
+#define TELCO_TONE_A_DURATION RINGBACK_TONE_A_DURATION    
+#define TELCO_TONE_B_DURATION RINGBACK_TONE_B_DURATION       
 #define TELCO_INTER_TONE_GAP 0        // No gap between tones in authentic systems
-#define TELCO_SILENCE_MIN RING_SILENCE_MIN        
-#define TELCO_SILENCE_MAX RING_SILENCE_MAX
+#define TELCO_SILENCE_MIN RINGBACK_SILENCE_MIN        
+#define TELCO_SILENCE_MAX RINGBACK_SILENCE_MAX
+
+// Legacy ring constants (deprecated - use RINGBACK)
+#define RING_TONE_A_DURATION RINGBACK_TONE_A_DURATION
+#define RING_TONE_B_DURATION RINGBACK_TONE_B_DURATION
+#define RING_SILENCE_MIN RINGBACK_SILENCE_MIN
+#define RING_SILENCE_MAX RINGBACK_SILENCE_MAX
 
 // Telco step return values
 #define STEP_TELCO_TURN_ON   1        // Start transmitting (tone A or B)

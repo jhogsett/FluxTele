@@ -13,12 +13,16 @@
 #define WAIT_SECONDS2 4
 
 // Telephony frequency offset constants (authentic DTMF frequencies)
-const float SimTelco::RING_FREQ_A = 440.0f;     // 440 Hz for ring tone
-const float SimTelco::RING_FREQ_C = 480.0f;     // 480 Hz for ring tone  
-const float SimTelco::BUSY_FREQ_A = 480.0f;     // 480 Hz for busy/reorder signals
-const float SimTelco::BUSY_FREQ_C = 620.0f;     // 620 Hz for busy/reorder signals
-const float SimTelco::DIAL_FREQ_A = 350.0f;     // 350 Hz for dial tone
-const float SimTelco::DIAL_FREQ_C = 440.0f;     // 440 Hz for dial tone
+const float SimTelco::RINGBACK_FREQ_A = 440.0f;  // 440 Hz for ringback tone
+const float SimTelco::RINGBACK_FREQ_C = 480.0f;  // 480 Hz for ringback tone  
+const float SimTelco::BUSY_FREQ_A = 480.0f;      // 480 Hz for busy/reorder signals
+const float SimTelco::BUSY_FREQ_C = 620.0f;      // 620 Hz for busy/reorder signals
+const float SimTelco::DIAL_FREQ_A = 350.0f;      // 350 Hz for dial tone
+const float SimTelco::DIAL_FREQ_C = 440.0f;      // 440 Hz for dial tone
+
+// Legacy aliases for backward compatibility
+const float SimTelco::RING_FREQ_A = SimTelco::RINGBACK_FREQ_A;
+const float SimTelco::RING_FREQ_C = SimTelco::RINGBACK_FREQ_C;
 
 // mode is expected to be a derivative of VFO
 SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
@@ -225,9 +229,9 @@ void SimTelco::randomize()
 // Set frequency offsets based on telco type
 void SimTelco::setFrequencyOffsetsForType() {
     switch (_telco_type) {
-        case TELCO_RING:
-            _frequency_offset_a = RING_FREQ_A;  // 440 Hz
-            _frequency_offset_c = RING_FREQ_C;  // 480 Hz
+        case TELCO_RINGBACK:
+            _frequency_offset_a = RINGBACK_FREQ_A;  // 440 Hz
+            _frequency_offset_c = RINGBACK_FREQ_C;  // 480 Hz
             break;
             
         case TELCO_BUSY:
@@ -242,9 +246,9 @@ void SimTelco::setFrequencyOffsetsForType() {
             break;
             
         default:
-            // Default to ring frequencies as fallback
-            _frequency_offset_a = RING_FREQ_A;
-            _frequency_offset_c = RING_FREQ_C;
+            // Default to ringback frequencies as fallback
+            _frequency_offset_a = RINGBACK_FREQ_A;
+            _frequency_offset_c = RINGBACK_FREQ_C;
             break;
     }
 }

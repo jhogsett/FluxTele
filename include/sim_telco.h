@@ -33,12 +33,16 @@ private:
     float _frequency_offset_c;      // Secondary frequency offset (Hz)
     
     // Telephony frequency offset constants
-    static const float RING_FREQ_A;     // 440 Hz for ring tone
-    static const float RING_FREQ_C;     // 480 Hz for ring tone  
-    static const float BUSY_FREQ_A;     // 480 Hz for busy/reorder signals
-    static const float BUSY_FREQ_C;     // 620 Hz for busy/reorder signals
-    static const float DIAL_FREQ_A;     // 350 Hz for dial tone
-    static const float DIAL_FREQ_C;     // 440 Hz for dial tone
+    static const float RINGBACK_FREQ_A;  // 440 Hz for ringback tone
+    static const float RINGBACK_FREQ_C;  // 480 Hz for ringback tone  
+    static const float BUSY_FREQ_A;      // 480 Hz for busy/reorder signals
+    static const float BUSY_FREQ_C;      // 620 Hz for busy/reorder signals
+    static const float DIAL_FREQ_A;      // 350 Hz for dial tone
+    static const float DIAL_FREQ_C;      // 440 Hz for dial tone
+    
+    // Legacy aliases for backward compatibility
+    static const float RING_FREQ_A;      // Deprecated: use RINGBACK_FREQ_A
+    static const float RING_FREQ_C;      // Deprecated: use RINGBACK_FREQ_C
     
     // Operator frustration frequency drift
     int _cycles_completed;          // Number of complete on/off cycles sent
