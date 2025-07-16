@@ -103,7 +103,7 @@ bool SimStation2::update(Mode *mode){
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-            wavegen_c->set_frequency(_frequency_c);
+            wavegen_c->set_frequency(_frequency2);
         }
     }
 

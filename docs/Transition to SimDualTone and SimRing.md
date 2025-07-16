@@ -6,7 +6,7 @@
 - They, along with `Realization` class, have been modified to support multiple AD9833 wave generators per station
     - In the case of Realization class, it can handle requests from 1 up to the max realizers
     - In the case of SimTransmitter2 there are provisions for using two generators per station
-        - `_frequency` and `_frequency_c` were added 
+        - `_frequency` and `_frequency2` were added 
     - The code to handle dual generators is guarded by:
         - `#if defined(ENABLE_GENERATOR_A) && defined(ENABLE_GENERATOR_C)`
 - On the device both stations can be heard playing CW with dual tones, offset by 100 Hz (`GENERATOR_C_TEST_OFFSET`, a temporary hack for testing-by-listening)

@@ -97,15 +97,12 @@ protected:    // Common utility methods
     bool _active;       // True when transmitter should be active (shared)
     float _vfo_freq;    // Current VFO frequency (shared - there's only one VFO)
 
-    // Wave Generator A variables
     float _frequency;   // Current frequency difference from VFO
+    float _frequency2;   // Current frequency difference from VFO
     
     // Dynamic station management state
     DualToneState _station_state;  // Current state in dynamic management system
 
-    // Wave Generator C variables
-    float _frequency_c;   // Current frequency difference from VFO
-    
     // Centralized charge pulse logic for all simulated stations
     virtual void send_carrier_charge_pulse(SignalMeter* signal_meter);
 };

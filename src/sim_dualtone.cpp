@@ -14,15 +14,12 @@ SimDualTone::SimDualTone(WaveGenPool *wave_gen_pool, float fixed_freq)
     _active = false;
     _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
 
-    // Initialize Wave Generator A variables
+    // Initialize Wave Generators variables
     _frequency = 0.0;
-    // _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
+    _frequency2 = 0.0;
     
     // Initialize dynamic station management state
     _station_state = DORMANT_DT;
-
-    // Initialize Wave Generator C variables
-    _frequency_c = 0.0;
 }
 
 bool SimDualTone::common_begin(unsigned long time, float fixed_freq)
@@ -41,7 +38,7 @@ bool SimDualTone::common_begin(unsigned long time, float fixed_freq)
     
     // Initialize generator-specific variables
     _frequency = 0.0;
-    _frequency_c = 0.0;
+    _frequency2 = 0.0;
     
     return true;
 }
@@ -63,11 +60,11 @@ void SimDualTone::common_frequency_update(Mode *mode)
     // _vfo_freq = float(vfo_c->_frequency) + (vfo_c->_sub_frequency / 10.0);
     
     // // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    // float raw_frequency_c = _vfo_freq - _fixed_freq;
+    // float raw_frequency2 = _vfo_freq - _fixed_freq;
       // Add BFO offset for comfortable audio tuning + test offset for dual generator verification
     // This shifts the audio frequency without affecting signal meter calculations
-    // _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
-    _frequency_c = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    // _frequency2 = raw_frequency2 + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    _frequency2 = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
 }
 
 bool SimDualTone::check_frequency_bounds()
@@ -94,7 +91,7 @@ bool SimDualTone::check_frequency_bounds()
         any_in_bounds = true;
     }
 
-    if(_frequency_c > MAX_AUDIBLE_FREQ_DT || _frequency_c < MIN_AUDIBLE_FREQ_DT){
+    if(_frequency2 > MAX_AUDIBLE_FREQ_DT || _frequency2 < MIN_AUDIBLE_FREQ_DT){
         if(_enabled){
             _enabled = false;
             // Set all generators to silent frequency
@@ -155,10 +152,9 @@ bool SimDualTone::reinitialize(unsigned long time, float fixed_freq)
     _enabled = false;
     _active = false;
     
-    // Reset Wave Generator A state
+    // Reset Wave Generatorz statez
     _frequency = 0.0;
-        // Reset Wave Generator C state
-    _frequency_c = 0.0;
+    _frequency2 = 0.0;
 
     _station_state = ACTIVE_DT;  // Station is now active at new frequency
     
@@ -235,7 +231,6 @@ void SimDualTone::force_frequency_update()
     
     // REVISIT need to apply two Telco offets here
 
-    // Update Generator A
     float raw_frequency = _vfo_freq - _fixed_freq;
     _frequency = raw_frequency + option_bfo_offset;
     
@@ -245,14 +240,13 @@ void SimDualTone::force_frequency_update()
         wavegen->set_frequency(_frequency);
     }
 
-    // Update Generator C (with test offset)
-    float raw_frequency_c = _vfo_freq - _fixed_freq;
-    _frequency_c = raw_frequency_c + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    float raw_frequency2 = _vfo_freq - _fixed_freq;
+    _frequency2 = raw_frequency2 + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
     
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(_frequency_c);
+        wavegen_c->set_frequency(_frequency2);
     }
 }
 
@@ -269,16 +263,4 @@ void SimDualTone::send_carrier_charge_pulse(SignalMeter* signal_meter) {
             signal_meter->add_charge(charge);
         }
     }
-
-    // // if (!signal_meter) return;
-    // int charge_c = VFO::calculate_signal_charge(_fixed_freq, _vfo_freq);
-    // if (charge_c > 0) {
-    //     const float LOCK_WINDOW_HZ = 50.0; // Lock window threshold (adjust as needed)
-    //     float freq_diff_c = abs(_fixed_freq - _vfo_freq);
-    //     if (freq_diff_c <= LOCK_WINDOW_HZ) {
-    //         signal_meter->add_charge(-charge_c);
-    //     } else {
-    //         signal_meter->add_charge(charge_c);
-    //     }
-    // }
 }
