@@ -8,20 +8,29 @@
 #include "signal_meter.h"
 #include "vfo.h"
 #include "realization.h"
+#include "station_state.h"
 #include "wave_gen_pool.h"
 
-// Station states for dynamic station management
-enum DualToneState {
-    DORMANT_DT,     // No frequency assigned, minimal memory usage
-    ACTIVE_DT,      // Frequency assigned, tracking VFO proximity  
-    AUDIBLE_DT,     // Active + has AD9833 generator assigned
-    SILENT_DT       // Active but no AD9833 (>4 stations in range)
-};
+// // Station states for dynamic station management
+// enum StationState {
+//     DORMANT,     // No frequency assigned, minimal memory usage
+//     ACTIVE,      // Frequency assigned, tracking VFO proximity  
+//     AUDIBLE,     // Active + has AD9833 generator assigned
+//     SILENT       // Active but no AD9833 (>4 stations in range)
+// };
+
+// // Station states for dynamic station management
+// enum StationState {
+//     DORMANT,     // No frequency assigned, minimal memory usage
+//     ACTIVE,      // Frequency assigned, tracking VFO proximity  
+//     AUDIBLE,     // Active + has AD9833 generator assigned
+//     SILENT       // Active but no AD9833 (>4 stations in range)
+// };
 
 // Common constants for simulated transmitters
-#define MAX_AUDIBLE_FREQ_DT 5000.0
-#define MIN_AUDIBLE_FREQ_DT -700.0   // FluxTele: No BFO required for telephony, allows full radio tuning range
-#define SILENT_FREQ_DT 0.1
+#define MAX_AUDIBLE_FREQ 5000.0
+#define MIN_AUDIBLE_FREQ -700.0   // FluxTele: No BFO required for telephony, allows full radio tuning range
+#define SILENT_FREQ 0.1
 
 /*
  * FLUXTELE FREQUENCY ARCHITECTURE EXPLANATION:
@@ -75,8 +84,8 @@ public:
     // Dynamic station management methods
     virtual bool reinitialize(unsigned long time, float fixed_freq);  // Reinitialize with new frequency
     virtual void randomize();  // Re-randomize station properties (callsign, WPM, etc.) - default implementation does nothing
-    void set_station_state(DualToneState new_state);  // Change station state
-    DualToneState get_station_state() const;  // Get current station state
+    void set_station_state(StationState new_state);  // Change station state
+    StationState get_station_state() const;  // Get current station state
     bool is_audible() const;  // True if station has AD9833 generator assigned
     float get_fixed_frequency() const;  // Get station's target frequency
     void setActive(bool active);
@@ -102,7 +111,7 @@ protected:    // Common utility methods
     float _frequency2;   // Current frequency difference from VFO
     
     // Dynamic station management state
-    DualToneState _station_state;  // Current state in dynamic management system
+    StationState _station_state;  // Current state in dynamic management system
 
     // Centralized charge pulse logic for all simulated stations
     virtual void send_carrier_charge_pulse(SignalMeter* signal_meter);

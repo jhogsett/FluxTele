@@ -4,15 +4,16 @@
 #include "signal_meter.h"
 #include "vfo.h"
 #include "realization.h"
+#include "station_state.h"
 #include "wave_gen_pool.h"
 
-// Station states for dynamic station management
-enum StationState {
-    DORMANT,     // No frequency assigned, minimal memory usage
-    ACTIVE,      // Frequency assigned, tracking VFO proximity  
-    AUDIBLE,     // Active + has AD9833 generator assigned
-    SILENT       // Active but no AD9833 (>4 stations in range)
-};
+// // Station states for dynamic station management
+// enum StationState {
+//     DORMANT,     // No frequency assigned, minimal memory usage
+//     ACTIVE,      // Frequency assigned, tracking VFO proximity  
+//     AUDIBLE,     // Active + has AD9833 generator assigned
+//     SILENT       // Active but no AD9833 (>4 stations in range)
+// };
 
 // Common constants for simulated transmitters
 #define MAX_AUDIBLE_FREQ 5000.0

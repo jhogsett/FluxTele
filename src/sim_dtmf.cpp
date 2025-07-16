@@ -102,13 +102,13 @@ bool SimDTMF::begin(unsigned long time) {
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_frequency(SILENT_FREQ_DT, false);
+        wavegen_a->set_frequency(SILENT_FREQ, false);
     }
 
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(SILENT_FREQ_DT, false);
+        wavegen_c->set_frequency(SILENT_FREQ, false);
     }
 
     // Set enabled and force frequency update

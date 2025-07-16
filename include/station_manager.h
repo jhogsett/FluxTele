@@ -2,7 +2,8 @@
 #define STATION_MANAGER_H
 
 #include "station_config.h"  // CRITICAL: Must include config macros BEFORE using them
-#include "sim_transmitter.h"
+// #include "sim_transmitter.h"
+#include "sim_dualtone.h"
 #include "realization.h"
 #include <stdint.h>
 
@@ -40,7 +41,7 @@
 class StationManager {
 public:
     // Standard constructor: Direct array of SimTransmitter pointers
-    StationManager(SimTransmitter* station_ptrs[], int actual_station_count);
+    // StationManager(SimTransmitter* station_ptrs[], int actual_station_count);
     
     // MEMORY OPTIMIZATION: Share RealizationPool array to eliminate duplicate station arrays
     // REQUIREMENT: All array entries MUST be SimTransmitter-derived objects (checked at runtime)
@@ -53,7 +54,7 @@ public:
     void updateStations(uint32_t vfo_freq);
     void allocateAD9833();
     void recycleDormantStations(uint32_t vfo_freq);
-    SimTransmitter* getStation(int idx);
+    SimDualTone* getStation(int idx);
     int getActiveStationCount() const;
     
     // Dynamic pipelining methods
@@ -68,7 +69,7 @@ public:
     uint32_t getPipelineCenterFreq() const { return pipeline_center_freq; }
     
 private:
-    SimTransmitter* stations[MAX_STATIONS];
+    SimDualTone* stations[MAX_STATIONS];
     int actual_station_count;  // Number of stations actually configured
     int ad9833_assignment[MAX_AD9833]; // Maps AD9833 channels to station indices
     

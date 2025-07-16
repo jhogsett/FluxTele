@@ -19,7 +19,7 @@ SimDualTone::SimDualTone(WaveGenPool *wave_gen_pool, float fixed_freq)
     _frequency2 = 0.0;
     
     // Initialize dynamic station management state
-    _station_state = DORMANT_DT;
+    _station_state = DORMANT;
 }
 
 bool SimDualTone::common_begin(unsigned long time, float fixed_freq)
@@ -69,7 +69,7 @@ bool SimDualTone::check_frequency_bounds()
 
     // REVISIT it shouldn't be capable of turning just one off (breaks realism)
 
-    if(_frequency > MAX_AUDIBLE_FREQ_DT || _frequency < MIN_AUDIBLE_FREQ_DT){
+    if(_frequency > MAX_AUDIBLE_FREQ || _frequency < MIN_AUDIBLE_FREQ){
         if(_enabled){
             _enabled = false;
             // Set all generators to silent frequency
@@ -77,8 +77,8 @@ bool SimDualTone::check_frequency_bounds()
                 int realizer = get_realizer(i);
                 if(realizer != -1) {
                     WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
-                    wavegen->set_frequency(SILENT_FREQ_DT, true);
-                    wavegen->set_frequency(SILENT_FREQ_DT, false);
+                    wavegen->set_frequency(SILENT_FREQ, true);
+                    wavegen->set_frequency(SILENT_FREQ, false);
                 }
             }
         }
@@ -135,7 +135,7 @@ bool SimDualTone::reinitialize(unsigned long time, float fixed_freq)
     _frequency = 0.0;
     _frequency2 = 0.0;
 
-    _station_state = ACTIVE_DT;  // Station is now active at new frequency
+    _station_state = ACTIVE;  // Station is now active at new frequency
     
     // Start the station with the new frequency
     bool success = begin(time);
@@ -153,13 +153,13 @@ void SimDualTone::randomize()
     // (e.g., callsigns, WPM, fist quality, message content, etc.)
 }
 
-void SimDualTone::set_station_state(DualToneState new_state)
+void SimDualTone::set_station_state(StationState new_state)
 {
-    DualToneState old_state = _station_state;
+    StationState old_state = _station_state;
     _station_state = new_state;
     
     // Handle state transition logic
-    if(old_state == AUDIBLE_DT && new_state != AUDIBLE_DT) {
+    if(old_state == AUDIBLE && new_state != AUDIBLE) {
         // Losing AD9833 generator - release it
         if(_realizer != -1) {
             end();  // This will free the realizer
@@ -167,14 +167,14 @@ void SimDualTone::set_station_state(DualToneState new_state)
     }
 }
 
-DualToneState SimDualTone::get_station_state() const
+StationState SimDualTone::get_station_state() const
 {
     return _station_state;
 }
 
 bool SimDualTone::is_audible() const
 {
-    return _station_state == AUDIBLE_DT;
+    return _station_state == AUDIBLE;
 }
 
 float SimDualTone::get_fixed_frequency() const

@@ -1286,10 +1286,10 @@ void loop()
 #ifdef CONFIG_DTMF_TEST
 	// Initialize DTMF test stations for digit sequence playback
 	dtmf_station1.begin(time + random(1000));
-	dtmf_station1.set_station_state(AUDIBLE_DT);
+	dtmf_station1.set_station_state(AUDIBLE);
 	
 	dtmf_station2.begin(time + random(2000));
-	dtmf_station2.set_station_state(AUDIBLE_DT);
+	dtmf_station2.set_station_state(AUDIBLE);
 	
 	Serial.println("DTMF stations initialized - should hear phone number sequences");
 	
@@ -1303,10 +1303,10 @@ void loop()
 #ifdef CONFIG_DTMF2_TEST
 	// Initialize SimDTMF2 test stations in RINGBACK mode
 	dtmf2_station1.begin(time + random(1000));
-	dtmf2_station1.set_station_state(AUDIBLE_DT);
+	dtmf2_station1.set_station_state(AUDIBLE);
 	
 	dtmf2_station2.begin(time + random(2000));
-	dtmf2_station2.set_station_state(AUDIBLE_DT);
+	dtmf2_station2.set_station_state(AUDIBLE);
 	
 	Serial.println("SimDTMF2 stations initialized in RINGBACK mode - should hear telephone ringback tones");
 #endif
