@@ -270,6 +270,10 @@ int SimDTMF::char_to_digit_index(char c) {
 }
 
 void SimDTMF::randomize() {
+    // CRITICAL: Ensure proper cleanup when station gets moved by StationManager
+    // This prevents wave generators from getting "stuck on" during station moves
+    end();  // Release all wave generators before randomizing
+    
     // Generate new random phone number if using random generation
     if (_use_random_numbers) {
         generate_random_nanp_number();

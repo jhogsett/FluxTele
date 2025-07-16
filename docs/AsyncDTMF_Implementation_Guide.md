@@ -279,6 +279,30 @@ public:
 4. **Direct wavegen frequency assignment** - Bypasses SimDualTone frequency management
 5. **Forgetting to call parent `common_begin()`** - Wave generator acquisition fails
 6. **Missing `force_frequency_update()` after frequency changes** - Old frequencies persist
+7. **Missing `end()` call in `randomize()`** - Wave generators get "stuck on" during station moves
+
+### 16. Critical StationManager Integration Fix
+**CRITICAL**: Always call `end()` in `randomize()` method to prevent stuck generators
+
+```cpp
+void SimDTMF::randomize() {
+    // CRITICAL: Ensure proper cleanup when station gets moved by StationManager
+    // This prevents wave generators from getting "stuck on" during station moves
+    end();  // Release all wave generators before randomizing
+    
+    // Then do your randomization logic...
+    if (_use_random_numbers) {
+        generate_random_nanp_number();
+        _digit_sequence = _generated_number;
+    }
+    
+    _dtmf.reset_sequence();
+    _in_wait_delay = false;
+    _next_cycle_time = 0;
+}
+```
+
+**Why This Matters**: When StationManager moves stations, it calls `reinitialize()` then `randomize()`. If the async state machine is mid-transmission, wave generators can get stuck in an active state without proper cleanup.
 
 ## Success Verification Checklist
 

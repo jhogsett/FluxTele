@@ -497,8 +497,8 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 
 #ifdef CONFIG_DTMF_TEST
 // TEST: Two DTMF stations for testing digit sequence playback (meets two-station minimum)
-SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0, "15556781234");  // Fixed test phone number
-SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0);  // Random NANP phone numbers
+SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // Fixed test phone number
+SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0, "15556781234");  // Random NANP phone numbers
 
 SimDualTone *station_pool[2] = {
     &dtmf_station1,
