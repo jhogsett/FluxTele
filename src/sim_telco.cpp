@@ -25,6 +25,9 @@ SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float 
     // Set frequency offsets based on telco type
     setFrequencyOffsetsForType();
     
+    // Configure AsyncTelco timing based on telco type
+    _telco.configure_timing(type);
+    
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
     _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before frustration (realistic)

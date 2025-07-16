@@ -2,15 +2,33 @@
 #define __ASYNC_TELCO_H__
 
 #include <Arduino.h>
+#include "telco_types.h"
 
-// Ring/Telco timing constants (in milliseconds)
-// SimRingBad: North American telephone ring cadence (2 seconds on, 4 seconds off)
-// SimPager: Authentic two-tone sequential timing (Genave/Motorola Quick Call)
-#define TELCO_TONE_A_DURATION 2000    // Ring ON: 2.0 seconds (North American standard)
-#define TELCO_TONE_B_DURATION 0       // Ring: Skip TONE B entirely (set to 0)
+// Ring/Telco timing constants (in milliseconds) - now supports multiple patterns
+// Ring cadence (North American standard)
+#define RING_TONE_A_DURATION 2000    // Ring ON: 2.0 seconds 
+#define RING_TONE_B_DURATION 0       // Ring: Skip TONE B entirely (set to 0)
+#define RING_SILENCE_MIN 4000        // Ring OFF: 4.0 seconds
+#define RING_SILENCE_MAX 4000        // Ring OFF: Fixed 4.0 seconds (no randomization)
+
+// Busy cadence (North American standard)
+#define BUSY_TONE_A_DURATION 500     // Busy ON: 0.5 seconds
+#define BUSY_TONE_B_DURATION 0       // Busy: Skip TONE B entirely (set to 0)  
+#define BUSY_SILENCE_MIN 500         // Busy OFF: 0.5 seconds
+#define BUSY_SILENCE_MAX 500         // Busy OFF: Fixed 0.5 seconds
+
+// Reorder cadence (North American standard)
+#define REORDER_TONE_A_DURATION 250  // Reorder ON: 0.25 seconds
+#define REORDER_TONE_B_DURATION 0    // Reorder: Skip TONE B entirely (set to 0)
+#define REORDER_SILENCE_MIN 250      // Reorder OFF: 0.25 seconds  
+#define REORDER_SILENCE_MAX 250      // Reorder OFF: Fixed 0.25 seconds
+
+// Legacy constants for backward compatibility
+#define TELCO_TONE_A_DURATION RING_TONE_A_DURATION    
+#define TELCO_TONE_B_DURATION RING_TONE_B_DURATION       
 #define TELCO_INTER_TONE_GAP 0        // No gap between tones in authentic systems
-#define TELCO_SILENCE_MIN 4000        // Ring OFF: 4.0 seconds (North American standard)
-#define TELCO_SILENCE_MAX 4000        // Ring OFF: Fixed 4.0 seconds (no randomization for rings)
+#define TELCO_SILENCE_MIN RING_SILENCE_MIN        
+#define TELCO_SILENCE_MAX RING_SILENCE_MAX
 
 // Telco step return values
 #define STEP_TELCO_TURN_ON   1        // Start transmitting (tone A or B)
@@ -33,6 +51,7 @@ class AsyncTelco
 public:
     AsyncTelco();
 
+    void configure_timing(TelcoType type);  // Configure timing based on telco type
     void start_telco_transmission(bool repeat);
     int step_telco(unsigned long time);
     int get_current_state() { return _current_state; }
@@ -47,6 +66,12 @@ private:
     int _current_state;               // Current telco state (TONE_A, TONE_B, SILENCE)
     unsigned long _next_event_time;   // When next state change should occur
     bool _initialized;                // True after first start_telco_transmission call
+    
+    // Configurable timing parameters (set by configure_timing)
+    unsigned long _tone_a_duration;   // Duration of tone A (ms)
+    unsigned long _tone_b_duration;   // Duration of tone B (ms) - 0 for single tone
+    unsigned long _silence_min;       // Minimum silence duration (ms)
+    unsigned long _silence_max;       // Maximum silence duration (ms)
 };
 
 #endif
