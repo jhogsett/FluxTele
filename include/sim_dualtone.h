@@ -6,7 +6,8 @@
 #define ENABLE_GENERATOR_C  // Enable for duplication testing
 
 // Test configuration: Offset Generator C by a small amount for verification
-#define GENERATOR_C_TEST_OFFSET 40.0  // Hz offset for testing dual generator operation
+#define GENERATOR_A_TEST_OFFSET 440.0  // Hz offset for testing dual generator operation
+#define GENERATOR_C_TEST_OFFSET 480.0  // Hz offset for testing dual generator operation
 
 #include "signal_meter.h"
 #include "vfo.h"
