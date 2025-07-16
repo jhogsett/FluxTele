@@ -51,12 +51,15 @@ void SimDualTone::common_frequency_update(Mode *mode)
     
     // Calculate raw frequency difference (used for signal meter - no BFO offset)
     float raw_frequency = _vfo_freq - _fixed_freq;
-    Serial.println(raw_frequency);
+    // Serial.println(raw_frequency);
 
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
     _frequency = raw_frequency + option_bfo_offset;
     _frequency2 = raw_frequency + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
+    Serial.println("------");
+    Serial.println(_frequency);
+    Serial.println(_frequency2);
 }
 
 bool SimDualTone::check_frequency_bounds()
@@ -217,7 +220,7 @@ void SimDualTone::force_frequency_update()
     }
 
     float raw_frequency2 = _vfo_freq - _fixed_freq;
-    _frequency2 = raw_frequency2 + option_bfo_offset;
+    _frequency2 = raw_frequency2 + option_bfo_offset + GENERATOR_C_TEST_OFFSET;
     
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
