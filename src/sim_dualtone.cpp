@@ -268,26 +268,26 @@ void SimDualTone::force_frequency_update2()
 
     Serial.println("ffu2-----------");
     
-    if(!_enabled){
-        Serial.println("ffu2 not enabled");
-    }
+    // if(!_enabled){
+    //     Serial.println("ffu2 not enabled");
+    // }
 
-    if(!has_all_realizers()){
-        Serial.println("ffu2 not all realizers");
-    }
+    // if(!has_all_realizers()){
+    //     Serial.println("ffu2 not all realizers");
+    // }
 
-    if(!_active){
-        Serial.println("ffu2 not active");
-    }
+    // if(!_active){
+    //     Serial.println("ffu2 not active");
+    // }
     
-    if(!_enabled || !has_all_realizers()) {
-        return;  // Skip if not enabled or missing realizers
-    }
+    // if(!_enabled || !has_all_realizers()) {
+    //     return;  // Skip if not enabled or missing realizers
+    // }
     
     int realizer_index = 0;  // Track which realizer to use
     
-    if(!_active)
-        return;
+    // if(!_active)
+    //     return;
 
     // Serial.println("ffu-----------");
     
@@ -299,7 +299,7 @@ void SimDualTone::force_frequency_update2()
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
-        // wavegen->set_frequency(_frequency);
+        wavegen->set_frequency(_frequency);
         Serial.println("this ruins it 1");
         Serial.println(_frequency);
     }
@@ -312,7 +312,7 @@ void SimDualTone::force_frequency_update2()
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        // wavegen_c->set_frequency(_frequency2);
+        wavegen_c->set_frequency(_frequency2);
         Serial.println("this ruins it 2");
         Serial.println(_frequency2);
     }

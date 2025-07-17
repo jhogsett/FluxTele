@@ -486,16 +486,18 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 #ifdef CONFIG_SIMTELCO_TEST
 // TEST: Single SimTelco station for testing duplicate class functionality
 SimTelco2 cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
-SimTelco2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55510000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
+// SimTelco2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55510000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
 
-SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
-    &cw_station2_test1,
-    &cw_station2_test2
+SimDualTone *station_pool[1] = {  // Now using SimDualTone base class
+    &cw_station2_test1
+	// ,
+    // &cw_station2_test2
 };
 
 Realization *realizations[2] = {  // Only 1 entry for test config
-	&cw_station2_test1,
-	&cw_station2_test2
+	&cw_station2_test1
+	// ,
+	// &cw_station2_test2
 };
 #endif
 
@@ -642,7 +644,7 @@ Realization *realizations[1] = {
 #ifdef CONFIG_MINIMAL_CW
 bool realization_stats[1] = {false};
 #elif defined(CONFIG_SIMTELCO_TEST)
-bool realization_stats[2] = {false, false};  // Single SimTelco test station
+bool realization_stats[1] = {false};  // Single SimTelco test station
 #elif defined(CONFIG_DTMF_TEST)
 bool realization_stats[2] = {false, false};  // Two DTMF test stations (meets two-station minimum)
 #elif defined(CONFIG_DTMF2_TEST)
@@ -668,7 +670,7 @@ bool realization_stats[4] = {false, false, false, false};
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_SIMTELCO_TEST)
-RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
+RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_DTMF_TEST)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_DTMF2_TEST)
@@ -699,7 +701,7 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 #ifdef CONFIG_MINIMAL_CW
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_SIMTELCO_TEST)
-StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_DTMF_TEST)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_DTMF2_TEST)
