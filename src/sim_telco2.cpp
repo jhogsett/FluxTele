@@ -84,7 +84,7 @@ SimTelco2::SimTelco2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, floa
     : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _telco_type(type)
 {
     // Set frequency offsets based on telco type
-    setFrequencyOffsetsForType();
+    // setFrequencyOffsetsForType();
     
     // Configure AsyncTelco timing based on telco type
     _telco.configure_timing(type);
@@ -97,14 +97,14 @@ SimTelco2::SimTelco2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, floa
     _in_wait_delay = false;
     _next_cycle_time = 0;
 
-    // // from SimDTMF
+    // from SimDTMF
     // _current_row_freq = 0.0f;
     // _current_col_freq = 0.0f;
-    // _use_random_numbers = false;  // Using fixed sequence
+    _use_random_numbers = true;
     
-    // // Generate initial random phone number
-    // generate_random_nanp_number();
-    // _digit_sequence = _generated_number;  // Point to generated number
+    // Generate initial random phone number
+    generate_random_nanp_number();
+    _digit_sequence = _generated_number;  // Point to generated number
 
     // // Initialize wait delay management (matching SimTelco pattern)
     // // _in_wait_delay = false;
@@ -189,12 +189,14 @@ bool SimTelco2::update(Mode *mode){
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
             wavegen_a->set_frequency(_frequency);
+            wavegen_a->set_frequency(SILENT_FREQ, false);
         }
 
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
             wavegen_c->set_frequency(_frequency2);
+            wavegen_c->set_frequency(SILENT_FREQ, false);
         }
     }
 
@@ -202,50 +204,162 @@ bool SimTelco2::update(Mode *mode){
     return true;
 }
 
+// returns true on successful update
+bool SimTelco2::update2(){
+
+    if(!has_all_realizers()) {
+        return;  // No WaveGens allocated
+    }
+
+    // if(!check_frequency_bounds()) {
+    //     return;  // Out of audible range
+    // }
+
+    // Set active state for all acquired wave generators
+    int realizer_index = 0;
+
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+        wavegen_a->set_frequency(_frequency);
+        wavegen_a->set_frequency(SILENT_FREQ, false);
+    }
+
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+        wavegen_c->set_frequency(_frequency2);
+        wavegen_c->set_frequency(SILENT_FREQ, false);
+    }
+}
+
+
+
+
 // call periodically to keep realization dynamic
 // returns true if it should keep going
 bool SimTelco2::step(unsigned long time){
-    // Handle ring cadence timing using AsyncTelco
-    int telco_state = _telco.step_telco(time);
+    // // Handle ring cadence timing using AsyncTelco
+    // int telco_state = _telco.step_telco(time);
     
-    switch(telco_state) {
-        case STEP_TELCO_TURN_ON:
+    // switch(telco_state) {
+    //     case STEP_TELCO_TURN_ON:
+    //         _active = true;
+    //         realize();
+    //         send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+    //         break;
+            
+    //     case STEP_TELCO_LEAVE_ON:
+    //         // Carrier remains on - send another charge pulse
+    //         send_carrier_charge_pulse(_signal_meter);
+    //         break;
+            
+    //     case STEP_TELCO_TURN_OFF:
+    //         _active = false;
+    //         realize();
+    //         // No charge pulse when carrier turns off
+            
+    //         // Count completed cycles for frustration logic (when ring cycle ends)
+    //         _cycles_completed++;
+    //         if(_cycles_completed >= _cycles_until_qsy) {
+    //             // Operator gets frustrated, QSYs to new frequency
+    //             apply_operator_frustration_drift();
+    //             // Reset frustration counter for next QSY
+    //             _cycles_completed = 0;
+    //             _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
+    //         }
+    //         break;
+            
+    //     case STEP_TELCO_LEAVE_OFF:
+    //         // Carrier remains off - no action needed
+    //         break;
+            
+    //     case STEP_TELCO_CHANGE_FREQ:
+    //         // Continue transmitting but change frequency (for dual-tone systems)
+    //         // Ring uses single tone, but this prepares for other telephony sounds
+    //         send_carrier_charge_pulse(_signal_meter);
+    //         break;
+    // }
+
+    // from SimDTMF
+    // Handle DTMF sequence timing using AsyncDTMF (matching SimTelco pattern)
+    int dtmf_state = _dtmf.step_dtmf(time);
+    
+    switch(dtmf_state) {
+        case STEP_DTMF_TURN_ON:
+            // from telco state
+            // _active = true;
+            // realize();
+            // send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+            // break;
+
+
+        // New digit starting - set frequencies and activate
+            set_digit_frequencies(_dtmf.get_current_digit());
+            // force_frequency_update(); //NOT IN TELCO
+            update2();
+
             _active = true;
             realize();
-            send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+            send_carrier_charge_pulse(_signal_meter);
             break;
             
-        case STEP_TELCO_LEAVE_ON:
+        case STEP_DTMF_LEAVE_ON:
+            // SAME IN TELCO
+
             // Carrier remains on - send another charge pulse
             send_carrier_charge_pulse(_signal_meter);
             break;
             
-        case STEP_TELCO_TURN_OFF:
+        case STEP_DTMF_TURN_OFF:
+            // from telco
             _active = false;
             realize();
             // No charge pulse when carrier turns off
             
-            // Count completed cycles for frustration logic (when ring cycle ends)
-            _cycles_completed++;
-            if(_cycles_completed >= _cycles_until_qsy) {
-                // Operator gets frustrated, QSYs to new frequency
-                apply_operator_frustration_drift();
-                // Reset frustration counter for next QSY
-                _cycles_completed = 0;
-                _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
-            }
+            // NOT IN TELCO
+            // // Count completed cycles for frustration logic (when ring cycle ends)
+            // _cycles_completed++;
+            // if(_cycles_completed >= _cycles_until_qsy) {
+            //     // Operator gets frustrated, QSYs to new frequency
+            //     apply_operator_frustration_drift();
+            //     // Reset frustration counter for next QSY
+            //     _cycles_completed = 0;
+            //     _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
+            // }
+            // break;
+
+            // Enter silence - set silent frequencies but keep generators
+            // _current_row_freq = 0.0f; // NOT IN TELCO
+            // _current_col_freq = 0.0f; // NOT IN TELCO
+            // force_frequency_update(); // NOT IN TELCO
+            // Note: Keep _active = true to maintain generator allocation
             break;
             
-        case STEP_TELCO_LEAVE_OFF:
-            // Carrier remains off - no action needed
+        case STEP_DTMF_LEAVE_OFF:
+            // SAME IN TELCO
+
+            // Remain in silence - no action needed
             break;
             
-        case STEP_TELCO_CHANGE_FREQ:
-            // Continue transmitting but change frequency (for dual-tone systems)
-            // Ring uses single tone, but this prepares for other telephony sounds
-            send_carrier_charge_pulse(_signal_meter);
+        case STEP_DTMF_CYCLE_END:
+            // End of sequence - properly release wave generators using end()
+            end();  // This calls SimDualTone::end() -> Realization::end() to free realizers
+            _in_wait_delay = true;
+            _next_cycle_time = time + 3000;  // 3 second pause
             break;
     }
+    
+// // // // Check if it's time to restart sequence after wait delay (matching SimTelco pattern)
+// // // if(_in_wait_delay && time >= _next_cycle_time) {
+// // //     // DYNAMIC PIPELINING: Try to reallocate WaveGen for next sequence cycle
+// // //     if(begin(time)) {  // Only proceed if WaveGen is available
+// // //         _in_wait_delay = false;
+// // //     } else {
+// // //         // WaveGen not available - extend wait period and try again later
+// // //         _next_cycle_time = time + 500 + random(1000);     // Try again in 0.5-1.5 seconds
+// // //     }
+// // // }
 
     // Check if it's time to start next transmission cycle after a wait period
     if(_in_wait_delay && time >= _next_cycle_time) {
@@ -259,73 +373,31 @@ bool SimTelco2::step(unsigned long time){
         }
     }
 
-    // // from SimDTMF
-    // // Handle DTMF sequence timing using AsyncDTMF (matching SimTelco pattern)
-    // int dtmf_state = _dtmf.step_dtmf(time);
-    
-    // switch(dtmf_state) {
-    //     case STEP_DTMF_TURN_ON:
-    //         // New digit starting - set frequencies and activate
-    //         set_digit_frequencies(_dtmf.get_current_digit());
-    //         force_frequency_update();
-    //         _active = true;
-    //         realize();
-    //         send_carrier_charge_pulse(_signal_meter);
-    //         break;
-            
-    //     case STEP_DTMF_LEAVE_ON:
-    //         // Carrier remains on - send another charge pulse
-    //         send_carrier_charge_pulse(_signal_meter);
-    //         break;
-            
-    //     case STEP_DTMF_TURN_OFF:
-    //         // Enter silence - set silent frequencies but keep generators
-    //         _current_row_freq = 0.0f;
-    //         _current_col_freq = 0.0f;
-    //         force_frequency_update();
-    //         // Note: Keep _active = true to maintain generator allocation
-    //         break;
-            
-    //     case STEP_DTMF_LEAVE_OFF:
-    //         // Remain in silence - no action needed
-    //         break;
-            
-    //     case STEP_DTMF_CYCLE_END:
-    //         // End of sequence - properly release wave generators using end()
-    //         end();  // This calls SimDualTone::end() -> Realization::end() to free realizers
-    //         _in_wait_delay = true;
-    //         _next_cycle_time = time + 3000;  // 3 second pause
-    //         break;
-    // }
-    
-// // // // Check if it's time to restart sequence after wait delay (matching SimTelco pattern)
-// // // if(_in_wait_delay && time >= _next_cycle_time) {
-// // //     // DYNAMIC PIPELINING: Try to reallocate WaveGen for next sequence cycle
-// // //     if(begin(time)) {  // Only proceed if WaveGen is available
-// // //         _in_wait_delay = false;
-// // //     } else {
-// // //         // WaveGen not available - extend wait period and try again later
-// // //         _next_cycle_time = time + 500 + random(1000);     // Try again in 0.5-1.5 seconds
-// // //     }
-// // // }
-
     return true;
 }
 
 void SimTelco2::set_digit_frequencies(char digit) {
+    Serial.println("----------");
+    Serial.println(digit);
     int digit_index = char_to_digit_index(digit);
     
     if(digit_index >= 0 && digit_index < 16) {
         int row_index = DIGIT_TO_ROW[digit_index];
         int col_index = DIGIT_TO_COL[digit_index];
         
-        _current_row_freq = ROW_FREQUENCIES[row_index];
-        _current_col_freq = COL_FREQUENCIES[col_index];
+        // _current_row_freq = ROW_FREQUENCIES[row_index];
+        // _current_col_freq = COL_FREQUENCIES[col_index];
+        _frequency = ROW_FREQUENCIES[row_index];
+        _frequency2 = COL_FREQUENCIES[col_index];
     } else {
         // Invalid character - use silence
-        _current_row_freq = 0.0f;
-        _current_col_freq = 0.0f;
+        // _current_row_freq = 0.0f;
+        // _current_col_freq = 0.0f;
+        _frequency = SILENT_FREQ;
+        _frequency2 = SILENT_FREQ;
     }
+    Serial.println(_frequency);
+    Serial.println(_frequency2);
 }
 
 int SimTelco2::char_to_digit_index(char c) {
@@ -491,34 +563,34 @@ void SimTelco2::randomize()
 void SimTelco2::setFrequencyOffsetsForType() {
     switch (_telco_type) {
         case TELCO_RINGBACK:
-            _frequency_offset_a = RINGBACK_FREQ_A;  // 440 Hz
-            _frequency_offset_c = RINGBACK_FREQ_C;  // 480 Hz
+            _frequency = RINGBACK_FREQ_A;  // 440 Hz
+            _frequency2 = RINGBACK_FREQ_C;  // 480 Hz
             break;
             
         case TELCO_BUSY:
         case TELCO_REORDER:
-            _frequency_offset_a = BUSY_FREQ_A;  // 480 Hz
-            _frequency_offset_c = BUSY_FREQ_C;  // 620 Hz
+            _frequency = BUSY_FREQ_A;  // 480 Hz
+            _frequency2 = BUSY_FREQ_C;  // 620 Hz
             break;
             
         case TELCO_DIALTONE:
-            _frequency_offset_a = DIAL_FREQ_A;  // 350 Hz
-            _frequency_offset_c = DIAL_FREQ_C;  // 440 Hz
+            _frequency = DIAL_FREQ_A;  // 350 Hz
+            _frequency2 = DIAL_FREQ_C;  // 440 Hz
             break;
             
         default:
             // Default to ringback frequencies as fallback
-            _frequency_offset_a = RINGBACK_FREQ_A;
-            _frequency_offset_c = RINGBACK_FREQ_C;
+            _frequency = RINGBACK_FREQ_A;
+            _frequency2 = RINGBACK_FREQ_C;
             break;
     }
 }
 
 // Override frequency offset methods to use stored values instead of macros
 float SimTelco2::getFrequencyOffsetA() const {
-    return _frequency_offset_a;
+    return _frequency;
 }
 
 float SimTelco2::getFrequencyOffsetC() const {
-    return _frequency_offset_c;
+    return _frequency2;
 }

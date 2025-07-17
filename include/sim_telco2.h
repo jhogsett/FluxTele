@@ -35,14 +35,16 @@ public:
     // Set station into retry state (used when initialization fails)
     void set_retry_state(unsigned long next_try_time);
 
+    bool update2();
+
 private:
     SignalMeter *_signal_meter;
 
     AsyncTelco _telco;              // AsyncTelco for ring cadence timing
     TelcoType _telco_type;          // Type of telco signal (Ring, Busy, Reorder)
     
-    float _frequency_offset_a;      // Primary frequency offset (Hz)
-    float _frequency_offset_c;      // Secondary frequency offset (Hz)
+    // float _frequency_offset_a;      // Primary frequency offset (Hz)
+    // float _frequency_offset_c;      // Secondary frequency offset (Hz)
     
     // Telephony frequency offset constants
     static const float RINGBACK_FREQ_A;  // 440 Hz for ringback tone
@@ -76,8 +78,8 @@ private:
     AsyncDTMF _dtmf;
     
     // Current digit frequencies
-    float _current_row_freq;
-    float _current_col_freq;
+    // float _current_row_freq;
+    // float _current_col_freq;
 
     // DTMF frequency lookup tables
     static const float ROW_FREQUENCIES[4];
