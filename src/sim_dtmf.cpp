@@ -129,6 +129,31 @@ bool SimDTMF::begin(unsigned long time) {
     return true;
 }
 
+void SimDTMF::realize() {
+    if(!has_all_realizers()) {
+        return;  // No WaveGens allocated
+    }
+
+    if(!check_frequency_bounds()) {
+        return;  // Out of audible range
+    }
+
+    // Set active state for all acquired wave generators
+    int realizer_index = 0;
+
+    int realizer_a = get_realizer(realizer_index++);
+    if(realizer_a != -1) {
+        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+        wavegen_a->set_active_frequency(_active);
+    }
+
+    int realizer_c = get_realizer(realizer_index++);
+    if(realizer_c != -1) {
+        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+        wavegen_c->set_active_frequency(_active);
+    }
+}
+
 bool SimDTMF::update(Mode *mode) {
     common_frequency_update(mode);
 
@@ -206,30 +231,6 @@ bool SimDTMF::step(unsigned long time) {
     return true;
 }
 
-void SimDTMF::realize() {
-    if(!has_all_realizers()) {
-        return;  // No WaveGens allocated
-    }
-
-    if(!check_frequency_bounds()) {
-        return;  // Out of audible range
-    }
-
-    // Set active state for all acquired wave generators
-    int realizer_index = 0;
-
-    int realizer_a = get_realizer(realizer_index++);
-    if(realizer_a != -1) {
-        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_active_frequency(_active);
-    }
-
-    int realizer_c = get_realizer(realizer_index++);
-    if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_active_frequency(_active);
-    }
-}
 
 void SimDTMF::set_digit_frequencies(char digit) {
     int digit_index = char_to_digit_index(digit);

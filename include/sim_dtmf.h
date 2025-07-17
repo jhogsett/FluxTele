@@ -29,7 +29,7 @@ public:
     bool update(Mode *mode) override;
     bool step(unsigned long time) override;
     void realize();
-    void randomize() override;
+    void randomize() override; // virtual?
     
     // Debug method to display current phone number
     void debug_print_phone_number() const;
