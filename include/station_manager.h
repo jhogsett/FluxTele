@@ -21,7 +21,7 @@
 #elif defined(CONFIG_MINIMAL_CW) || defined(CONFIG_TEST_PERFORMANCE) || defined(CONFIG_PAGER2_TEST)
 #define MAX_STATIONS 1
 #elif defined(CONFIG_SIMTELCO_TEST)
-#define MAX_STATIONS 1
+#define MAX_STATIONS 2
 #elif defined(CONFIG_DTMF_TEST) || defined(CONFIG_DTMF2_TEST)
 #define MAX_STATIONS 2
 #else
