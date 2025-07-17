@@ -43,8 +43,8 @@ private:
     AsyncTelco _telco;              // AsyncTelco for ring cadence timing
     TelcoType _telco_type;          // Type of telco signal (Ring, Busy, Reorder)
     
-    // float _frequency_offset_a;      // Primary frequency offset (Hz)
-    // float _frequency_offset_c;      // Secondary frequency offset (Hz)
+    float _frequency_offset_a;      // Primary frequency offset (Hz)
+    float _frequency_offset_c;      // Secondary frequency offset (Hz)
     
     // Telephony frequency offset constants
     static const float RINGBACK_FREQ_A;  // 440 Hz for ringback tone

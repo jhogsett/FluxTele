@@ -136,7 +136,10 @@ bool SimTelco2::begin(unsigned long time){
     // Set enabled and force frequency update with existing _vfo_freq
     // _vfo_freq should retain its value from the previous cycle
     _enabled = true;
-    force_frequency_update();
+
+    // this call is ineffective because _active is false
+    // force_frequency_update();
+
     realize();  // CRITICAL: Set active state for audio output!
 
     // Start AsyncTelco ring cadence (repeating)
@@ -153,25 +156,43 @@ bool SimTelco2::begin(unsigned long time){
 
 void SimTelco2::realize(){
     if(!has_all_realizers()) {
-        return;  // No WaveGens allocated
+        Serial.println("*******");
+        Serial.println("no wave gens allocated");
+        return;
     }
-
+    
     if(!check_frequency_bounds()) {
-        return;  // Out of audible range
+        Serial.println("&&&&&&&");
+        Serial.println("out of bounds");
+        return;
     }
 
+    // Serial.println("realize*******");
+    
     // Set active state for all acquired wave generators
     int realizer_index = 0;
 
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+
+        // wavegen_a->set_frequency(_frequency);
+        // wavegen_a->set_frequency(SILENT_FREQ, false);
+        // Serial.println("would set:");
+        // Serial.println(_frequency);
+
         wavegen_a->set_active_frequency(_active);
     }
 
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+
+        // wavegen_c->set_frequency(_frequency2);
+        // wavegen_c->set_frequency(SILENT_FREQ, false);
+        // Serial.println("would set:");
+        // Serial.println(_frequency2);
+
         wavegen_c->set_active_frequency(_active);
     }
 }
@@ -180,7 +201,17 @@ void SimTelco2::realize(){
 bool SimTelco2::update(Mode *mode){
     common_frequency_update(mode);
 
+    if(!_enabled){
+        Serial.println("update() not enabled");
+    }
+
+    if(!has_all_realizers()){
+        Serial.println("not all realizers");
+    }
+
     if(_enabled && has_all_realizers()){
+
+        Serial.print("+++Update");
 
         // Update frequencies for all acquired wave generators
         int realizer_index = 0;
@@ -188,6 +219,9 @@ bool SimTelco2::update(Mode *mode){
         int realizer_a = get_realizer(realizer_index++);
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
+            Serial.print("update ");
+            Serial.print(_frequency);
+            Serial.print(SILENT_FREQ);
             wavegen_a->set_frequency(_frequency);
             wavegen_a->set_frequency(SILENT_FREQ, false);
         }
@@ -195,6 +229,9 @@ bool SimTelco2::update(Mode *mode){
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+            Serial.print("update ");
+            Serial.print(_frequency2);
+            Serial.print(SILENT_FREQ);
             wavegen_c->set_frequency(_frequency2);
             wavegen_c->set_frequency(SILENT_FREQ, false);
         }
@@ -203,38 +240,6 @@ bool SimTelco2::update(Mode *mode){
     realize();
     return true;
 }
-
-// returns true on successful update
-bool SimTelco2::update2(){
-
-    if(!has_all_realizers()) {
-        return;  // No WaveGens allocated
-    }
-
-    // if(!check_frequency_bounds()) {
-    //     return;  // Out of audible range
-    // }
-
-    // Set active state for all acquired wave generators
-    int realizer_index = 0;
-
-    int realizer_a = get_realizer(realizer_index++);
-    if(realizer_a != -1) {
-        WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_frequency(_frequency);
-        wavegen_a->set_frequency(SILENT_FREQ, false);
-    }
-
-    int realizer_c = get_realizer(realizer_index++);
-    if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(_frequency2);
-        wavegen_c->set_frequency(SILENT_FREQ, false);
-    }
-}
-
-
-
 
 // call periodically to keep realization dynamic
 // returns true if it should keep going
@@ -295,11 +300,11 @@ bool SimTelco2::step(unsigned long time){
 
 
         // New digit starting - set frequencies and activate
-            set_digit_frequencies(_dtmf.get_current_digit());
-            // force_frequency_update(); //NOT IN TELCO
-            update2();
-
             _active = true;
+            set_digit_frequencies(_dtmf.get_current_digit());
+            force_frequency_update2(); //NOT IN TELCO
+            // update();
+
             realize();
             send_carrier_charge_pulse(_signal_meter);
             break;
@@ -313,6 +318,8 @@ bool SimTelco2::step(unsigned long time){
             
         case STEP_DTMF_TURN_OFF:
             // from telco
+            // Serial.println("+++TURN OFF");
+            // force_frequency_update(); //NOT IN TELCO
             _active = false;
             realize();
             // No charge pulse when carrier turns off
@@ -377,8 +384,8 @@ bool SimTelco2::step(unsigned long time){
 }
 
 void SimTelco2::set_digit_frequencies(char digit) {
-    Serial.println("----------");
-    Serial.println(digit);
+    // Serial.println("----------");
+    // Serial.println(digit);
     int digit_index = char_to_digit_index(digit);
     
     if(digit_index >= 0 && digit_index < 16) {
@@ -387,17 +394,17 @@ void SimTelco2::set_digit_frequencies(char digit) {
         
         // _current_row_freq = ROW_FREQUENCIES[row_index];
         // _current_col_freq = COL_FREQUENCIES[col_index];
-        _frequency = ROW_FREQUENCIES[row_index];
-        _frequency2 = COL_FREQUENCIES[col_index];
+        _frequency_offset_a = ROW_FREQUENCIES[row_index];
+        _frequency_offset_c = COL_FREQUENCIES[col_index];
     } else {
         // Invalid character - use silence
         // _current_row_freq = 0.0f;
         // _current_col_freq = 0.0f;
-        _frequency = SILENT_FREQ;
-        _frequency2 = SILENT_FREQ;
+        _frequency_offset_a = SILENT_FREQ;
+        _frequency_offset_c = SILENT_FREQ;
     }
-    Serial.println(_frequency);
-    Serial.println(_frequency2);
+    // Serial.println(_frequency_offset_a);
+    // Serial.println(_frequency_offset_c);
 }
 
 int SimTelco2::char_to_digit_index(char c) {
@@ -563,34 +570,34 @@ void SimTelco2::randomize()
 void SimTelco2::setFrequencyOffsetsForType() {
     switch (_telco_type) {
         case TELCO_RINGBACK:
-            _frequency = RINGBACK_FREQ_A;  // 440 Hz
-            _frequency2 = RINGBACK_FREQ_C;  // 480 Hz
+            _frequency_offset_a = RINGBACK_FREQ_A;  // 440 Hz
+            _frequency_offset_c = RINGBACK_FREQ_C;  // 480 Hz
             break;
             
         case TELCO_BUSY:
         case TELCO_REORDER:
-            _frequency = BUSY_FREQ_A;  // 480 Hz
-            _frequency2 = BUSY_FREQ_C;  // 620 Hz
+            _frequency_offset_a = BUSY_FREQ_A;  // 480 Hz
+            _frequency_offset_c = BUSY_FREQ_C;  // 620 Hz
             break;
             
         case TELCO_DIALTONE:
-            _frequency = DIAL_FREQ_A;  // 350 Hz
-            _frequency2 = DIAL_FREQ_C;  // 440 Hz
+            _frequency_offset_a = DIAL_FREQ_A;  // 350 Hz
+            _frequency_offset_c = DIAL_FREQ_C;  // 440 Hz
             break;
             
         default:
             // Default to ringback frequencies as fallback
-            _frequency = RINGBACK_FREQ_A;
-            _frequency2 = RINGBACK_FREQ_C;
+            _frequency_offset_a = RINGBACK_FREQ_A;
+            _frequency_offset_c = RINGBACK_FREQ_C;
             break;
     }
 }
 
 // Override frequency offset methods to use stored values instead of macros
 float SimTelco2::getFrequencyOffsetA() const {
-    return _frequency;
+    return _frequency_offset_a;
 }
 
 float SimTelco2::getFrequencyOffsetC() const {
-    return _frequency2;
+    return _frequency_offset_c;
 }

@@ -96,6 +96,7 @@ protected:    // Common utility methods
     bool common_begin(unsigned long time, float fixed_freq);  // Common initialization logic
     void common_frequency_update(Mode *mode);  // Common frequency calculation (mode must be VFO)
     void force_frequency_update();  // Immediately update wave generator after _fixed_freq changes
+    void force_frequency_update2();  // Immediately update wave generator after _fixed_freq changes
 
     // Virtual methods for frequency offsets (allows derived classes to customize)
     virtual float getFrequencyOffsetA() const;  // Get primary frequency offset (default uses macro)
