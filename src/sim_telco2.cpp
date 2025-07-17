@@ -1,9 +1,6 @@
 // Field Day Configuration - Must be defined before including sim_station.h
 #include "station_config.h"
 
-// Temporary debug output for resource testing - disable for production to save memory
-// #define DEBUG_STATION_RESOURCES
-
 #include "vfo.h"
 #include "wavegen.h"
 #include "wave_gen_pool.h"
@@ -105,10 +102,6 @@ SimTelco2::SimTelco2(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, floa
     // Generate initial random phone number
     generate_random_nanp_number();
     _digit_sequence = _generated_number;  // Point to generated number
-
-    // // Initialize wait delay management (matching SimTelco pattern)
-    // // _in_wait_delay = false;
-    // // _next_cycle_time = 0;
 }
 
 bool SimTelco2::begin(unsigned long time){
@@ -144,55 +137,37 @@ bool SimTelco2::begin(unsigned long time){
 
     // Start AsyncTelco ring cadence (repeating)
     _telco.start_telco_transmission(true);
-    _in_wait_delay = false;
-
+    
     // from SimDTMF
     // Start AsyncDTMF sequence (matching SimTelco pattern with AsyncTelco)
     _dtmf.start_dtmf_transmission(_digit_sequence, true);
-    // _in_wait_delay = false;  // Clear wait delay state
+
+    _in_wait_delay = false;
 
     return true;
 }
 
 void SimTelco2::realize(){
     if(!has_all_realizers()) {
-        Serial.println("*******");
-        Serial.println("no wave gens allocated");
         return;
     }
     
     if(!check_frequency_bounds()) {
-        Serial.println("&&&&&&&");
-        Serial.println("out of bounds");
         return;
     }
 
-    // Serial.println("realize*******");
-    
     // Set active state for all acquired wave generators
     int realizer_index = 0;
 
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-
-        // wavegen_a->set_frequency(_frequency);
-        // wavegen_a->set_frequency(SILENT_FREQ, false);
-        // Serial.println("would set:");
-        // Serial.println(_frequency);
-
         wavegen_a->set_active_frequency(_active);
     }
 
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-
-        // wavegen_c->set_frequency(_frequency2);
-        // wavegen_c->set_frequency(SILENT_FREQ, false);
-        // Serial.println("would set:");
-        // Serial.println(_frequency2);
-
         wavegen_c->set_active_frequency(_active);
     }
 }
@@ -201,39 +176,22 @@ void SimTelco2::realize(){
 bool SimTelco2::update(Mode *mode){
     common_frequency_update(mode);
 
-    if(!_enabled){
-        Serial.println("update() not enabled");
-    }
-
-    if(!has_all_realizers()){
-        Serial.println("not all realizers");
-    }
-
     if(_enabled && has_all_realizers()){
-
-        Serial.print("+++Update");
-
         // Update frequencies for all acquired wave generators
         int realizer_index = 0;
 
         int realizer_a = get_realizer(realizer_index++);
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-            Serial.print("update ");
-            Serial.print(_frequency);
-            Serial.print(SILENT_FREQ);
             wavegen_a->set_frequency(_frequency);
-            wavegen_a->set_frequency(SILENT_FREQ, false);
+            wavegen_a->set_frequency(SILENT_FREQ, false); // REVISIT
         }
 
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-            Serial.print("update ");
-            Serial.print(_frequency2);
-            Serial.print(SILENT_FREQ);
             wavegen_c->set_frequency(_frequency2);
-            wavegen_c->set_frequency(SILENT_FREQ, false);
+            wavegen_c->set_frequency(SILENT_FREQ, false); // REVISIT
         }
     }
 
@@ -384,27 +342,19 @@ bool SimTelco2::step(unsigned long time){
 }
 
 void SimTelco2::set_digit_frequencies(char digit) {
-    // Serial.println("----------");
-    // Serial.println(digit);
     int digit_index = char_to_digit_index(digit);
     
     if(digit_index >= 0 && digit_index < 16) {
         int row_index = DIGIT_TO_ROW[digit_index];
         int col_index = DIGIT_TO_COL[digit_index];
         
-        // _current_row_freq = ROW_FREQUENCIES[row_index];
-        // _current_col_freq = COL_FREQUENCIES[col_index];
         _frequency_offset_a = ROW_FREQUENCIES[row_index];
         _frequency_offset_c = COL_FREQUENCIES[col_index];
     } else {
         // Invalid character - use silence
-        // _current_row_freq = 0.0f;
-        // _current_col_freq = 0.0f;
         _frequency_offset_a = SILENT_FREQ;
         _frequency_offset_c = SILENT_FREQ;
     }
-    // Serial.println(_frequency_offset_a);
-    // Serial.println(_frequency_offset_c);
 }
 
 int SimTelco2::char_to_digit_index(char c) {
@@ -497,15 +447,6 @@ void SimTelco2::generate_random_nanp_number() {
              prefix_first, prefix_second, prefix_third,
              suffix_1, suffix_2, suffix_3, suffix_4);
 }
-
-// // Override frequency offset methods to use DTMF frequencies
-// float SimTelco2::getFrequencyOffsetA() const {
-//     return _current_row_freq;  // Row frequency
-// }
-
-// float SimTelco2::getFrequencyOffsetC() const {
-//     return _current_col_freq;  // Column frequency
-// }
 
 // Set station into retry state (used when initialization fails)
 void SimTelco2::set_retry_state(unsigned long next_try_time) {
