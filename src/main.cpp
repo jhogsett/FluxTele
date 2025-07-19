@@ -235,10 +235,11 @@ SimTelco cw_station2_test4(&wave_gen_pool, &signal_meter,  555250000L, TelcoType
 SimTelco cw_station2_test5(&wave_gen_pool, &signal_meter,  555300000L, TelcoType::TELCO_RINGBACK);
 SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter,  555350000L, TelcoType::TELCO_RINGBACK);
 SimDTMF cw_station2_test7(&wave_gen_pool, &signal_meter,   555400000L);
-SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter,  555450000L, TelcoType::TELCO_BUSY);
-SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555500000L, TelcoType::TELCO_REORDER);
-SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);
-SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
+SimDTMF cw_station2_test8(&wave_gen_pool, &signal_meter,   555500000L);
+SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555450000L, TelcoType::TELCO_BUSY);
+SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_BUSY);
+// SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);
+SimDualTone *station_pool[10] = {
     &cw_station2_test1,
     &cw_station2_test2,
     &cw_station2_test3,
@@ -246,9 +247,8 @@ SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
     &cw_station2_test5,
     &cw_station2_test6,
     &cw_station2_test7,
-    &cw_station2_test8
-	,
-    &cw_station2_test9,
+    &cw_station2_test8,
+	&cw_station2_test9,
     &cw_station2_test10
 };
 
@@ -260,8 +260,7 @@ Realization *realizations[10] = {  // Only 1 entry for test config
     &cw_station2_test5,
     &cw_station2_test6,
     &cw_station2_test7,
-    &cw_station2_test8
-	,
+    &cw_station2_test8,
     &cw_station2_test9,
     &cw_station2_test10
 };
