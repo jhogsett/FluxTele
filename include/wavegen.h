@@ -13,7 +13,8 @@ public:
     void force_refresh();  // Force hardware update regardless of cached state
 
     MD_AD9833 * _sig_gen;
-    float _frequency;
+    float _frequency_main;
+    float _frequency_alt;
     bool _main;
 };
 
