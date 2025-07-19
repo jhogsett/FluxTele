@@ -367,6 +367,15 @@ void SimDTMF::apply_operator_frustration_drift()
 
     // Immediately update the wave generator frequency
     force_frequency_update();
+    
+    // REALISM: Add 3-5 second delay before operator starts transmitting again
+    // This simulates the time needed for retuning and getting back on the air
+    unsigned long restart_delay = 3000 + random(2000);  // 3-5 seconds
+    _in_wait_delay = true;
+    _next_cycle_time = millis() + restart_delay;
+    
+    // Stop current transmission to make the delay effective
+    end();
 }
 
 void SimDTMF::randomize()

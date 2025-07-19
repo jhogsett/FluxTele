@@ -239,6 +239,14 @@ void SimTelco::apply_operator_frustration_drift()
 
     // Immediately update the wave generator frequency
     force_frequency_update();
+    
+    // REALISM: Add 3-5 second delay before operator starts transmitting again
+    // This simulates the time needed for retuning and getting back on the air
+    unsigned long restart_delay = 3000 + random(2000);  // 3-5 seconds
+    set_retry_state(millis() + restart_delay);
+    
+    // Stop current transmission to make the delay effective
+    end();
 }
 
 void SimTelco::randomize()
