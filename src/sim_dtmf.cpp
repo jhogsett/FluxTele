@@ -148,14 +148,12 @@ bool SimDTMF::update(Mode *mode){
         if(realizer_a != -1){
             WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
             wavegen_a->set_frequency(_frequency);
-            wavegen_a->set_frequency(SILENT_FREQ, false); // REVISIT
         }
 
         int realizer_c = get_realizer(realizer_index++);
         if(realizer_c != -1){
             WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
             wavegen_c->set_frequency(_frequency2);
-            wavegen_c->set_frequency(SILENT_FREQ, false); // REVISIT
         }
     }
 
@@ -336,7 +334,6 @@ void SimDTMF::generate_random_nanp_number() {
              suffix_1, suffix_2, suffix_3, suffix_4);
 }
 
-// // REVISIT - never used
 // // Set station into retry state (used when initialization fails)
 // void SimDTMF::set_retry_state(unsigned long next_try_time) {
 //     _in_wait_delay = true;
