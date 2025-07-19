@@ -117,6 +117,52 @@ int calculateDriftCycles(TelcoType type) {
 
 ---
 
+## Tweak #4: Eliminate Station Selection Bias in Dynamic Pipelining
+
+**Date**: July 19, 2025  
+**Problem**: When StationManager selected stations to relocate during dynamic pipelining, it showed selection bias toward stations with lower array indices (earlier stations in the configuration). When multiple stations were equally good candidates for relocation, the algorithm would always choose the one listed first.
+
+**Root Cause**: The candidate selection process used a deterministic approach:
+1. Find stations that can be moved → candidates array
+2. Sort by distance (furthest first) → maintains array order for stations at same distance  
+3. Move sequentially from candidates[0] → systematic bias toward earlier stations
+
+This meant station 2 would always be moved before station 7 if they were at similar distances, creating predictable and potentially unnatural behavior patterns.
+
+**Solution**: 
+Added randomization to candidate selection while preserving distance-based priority in `src/station_manager.cpp`:
+```cpp
+// After initial distance sorting:
+// 1. Shuffle entire candidates array to randomize selection
+for (int i = candidate_count - 1; i > 0; --i) {
+    int j = random(i + 1);  // Random index from 0 to i
+    if (i != j) {
+        StationDistance temp = candidates[i];
+        candidates[i] = candidates[j];  
+        candidates[j] = temp;
+    }
+}
+
+// 2. Re-sort by distance to maintain furthest-first priority
+// This preserves randomization within each distance group
+```
+
+**Expected Impact**:
+- Eliminates systematic bias toward earlier stations in configuration
+- Maintains proper distance-based prioritization (furthest stations moved first)
+- Creates more natural and unpredictable station behavior
+- All stations have equal probability of being selected when at similar distances
+- Improves perceived randomness and realism of station management
+
+**Testing Notes**:
+- Observe station movement patterns over extended tuning sessions
+- Verify that different stations get moved when multiple candidates are available
+- Ensure furthest stations are still prioritized correctly
+- Check that no single station dominates the movement pattern
+- Validate that station behavior feels more natural and less predictable
+
+---
+
 ## Future Tweak Ideas
 
 **Potential Areas for Improvement** (to be tested and documented as implemented):
