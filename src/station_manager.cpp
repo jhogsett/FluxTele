@@ -307,22 +307,26 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
     
     // USABILITY: Randomly select candidates to avoid selection bias toward earlier stations
     // Shuffle the candidates array to randomize selection order among stations at similar distances
-    for (int i = candidate_count - 1; i > 0; --i) {
-        int j = random(i + 1);  // Random index from 0 to i
-        if (i != j) {
-            StationDistance temp = candidates[i];
-            candidates[i] = candidates[j];
-            candidates[j] = temp;
+    if (candidate_count > 0) {
+        for (int i = candidate_count - 1; i > 0; --i) {
+            int j = random(i + 1);  // Random index from 0 to i
+            if (i != j) {
+                StationDistance temp = candidates[i];
+                candidates[i] = candidates[j];
+                candidates[j] = temp;
+            }
         }
     }
     
     // Re-sort by distance to maintain furthest-first priority while keeping randomization within distance groups
-    for (int i = 0; i < candidate_count - 1; ++i) {
-        for (int j = i + 1; j < candidate_count; ++j) {
-            if (candidates[i].distance < candidates[j].distance) {
-                StationDistance temp = candidates[i];
-                candidates[i] = candidates[j];
-                candidates[j] = temp;
+    if (candidate_count > 1) {
+        for (int i = 0; i < candidate_count - 1; ++i) {
+            for (int j = i + 1; j < candidate_count; ++j) {
+                if (candidates[i].distance < candidates[j].distance) {
+                    StationDistance temp = candidates[i];
+                    candidates[i] = candidates[j];
+                    candidates[j] = temp;
+                }
             }
         }
     }
