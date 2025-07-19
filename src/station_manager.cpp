@@ -1,30 +1,5 @@
 #include "station_state.h"
 #include "station_manager.h"
-// #include "sim_numbers.h" // Example concrete station type
-
-// StationManager::StationManager(SimTransmitter* station_ptrs[], int actual_station_count)
-//     : actual_station_count(actual_station_count) {
-//     // Standard constructor with dedicated SimTransmitter array
-//     for (int i = 0; i < actual_station_count; ++i) {
-//         stations[i] = station_ptrs[i];
-//         stations[i]->setActive(false);
-//         stations[i]->set_station_state(DORMANT);
-//     }
-//     // Initialize remaining slots to nullptr (not accessed)
-//     for (int i = actual_station_count; i < MAX_STATIONS; ++i) {
-//         stations[i] = nullptr;
-//     }
-//     for (int i = 0; i < MAX_AD9833; ++i) {
-//         ad9833_assignment[i] = -1;
-//     }
-    
-//     // Initialize dynamic pipelining state
-//     pipeline_enabled = false;
-//     last_vfo_freq = 0;
-//     pipeline_center_freq = 0;
-//     tuning_direction = 0;
-//     last_tuning_time = 0;
-// }
 
 // MEMORY OPTIMIZATION: Constructor that shares realizations array to eliminate duplicate arrays
 // REQUIREMENT: All array entries MUST be SimTransmitter-derived objects
