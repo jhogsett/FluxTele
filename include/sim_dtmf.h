@@ -93,7 +93,7 @@ public:
     void generate_random_nanp_number();  // Generate random North American phone number
     
 // private:
-//     void apply_operator_frustration_drift();
+    void apply_operator_frustration_drift();
 //     void setFrequencyOffsetsForType();  // Set frequency offsets based on telco type
 
 // protected:

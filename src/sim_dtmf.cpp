@@ -281,16 +281,16 @@ bool SimDTMF::step(unsigned long time){
             realize();
             // No charge pulse when carrier turns off
             
-            // // Count completed cycles for frustration logic (when ring cycle ends)
-            // _cycles_completed++;
-            // if(_cycles_completed >= _cycles_until_qsy) {
-            //     // Operator gets frustrated, QSYs to new frequency
-            //     apply_operator_frustration_drift();
-            //     // Reset frustration counter for next QSY
-            //     _cycles_completed = 0;
-            //     _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
-            // }
-            // break;
+            // Count completed cycles for frustration logic (when ring cycle ends)
+            _cycles_completed++;
+            if(_cycles_completed >= _cycles_until_qsy) {
+                // Operator gets frustrated, QSYs to new frequency
+                apply_operator_frustration_drift();
+                // Reset frustration counter for next QSY
+                _cycles_completed = 0;
+                _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
+            }
+            break;
 
             // NOT IN TELCO
             // // Count completed cycles for frustration logic (when ring cycle ends)
@@ -454,21 +454,21 @@ void SimDTMF::generate_random_nanp_number() {
 //     _next_cycle_time = next_try_time;
 // }
 
-// void SimDTMF::apply_operator_frustration_drift()
-// {
-//     // Move to a new frequency as if a whole new operator is on the air
-//     // Realistic amateur radio operator frequency adjustment
-//     // ±250 Hz - keep nearby within listening range
-//     const float DRIFT_RANGE = 250.0f;
+void SimDTMF::apply_operator_frustration_drift()
+{
+    // Move to a new frequency as if a whole new operator is on the air
+    // Realistic amateur radio operator frequency adjustment
+    // ±250 Hz - keep nearby within listening range
+    const float DRIFT_RANGE = 250.0f;
 
-//     float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
+    float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
 
-//     // Apply drift to the shared frequency
-//     _fixed_freq = _fixed_freq + drift;
+    // Apply drift to the shared frequency
+    _fixed_freq = _fixed_freq + drift;
 
-//     // Immediately update the wave generator frequency
-//     force_frequency_update();
-// }
+    // Immediately update the wave generator frequency
+    force_frequency_update();
+}
 
 // // left out because it could be causing the bug
 // // void SimDTMF::randomize() {
