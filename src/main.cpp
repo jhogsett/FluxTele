@@ -1312,6 +1312,14 @@ void loop()
 	
 	Serial.println("SimDTMF2 stations initialized in RINGBACK mode - should hear telephone ringback tones");
 #endif
+
+#ifdef CONFIG_SIMTELCO_TEST
+	cw_station2_test1.begin(time + random(1000));
+	cw_station2_test1.set_station_state(AUDIBLE);
+	cw_station2_test2.begin(time + random(2000));
+	cw_station2_test2.set_station_state(AUDIBLE);
+#endif
+
 	set_application(APP_SIMRADIO, &display);
 
 	while(true){
