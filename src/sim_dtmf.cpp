@@ -56,7 +56,7 @@ const int SimDTMF::DIGIT_TO_COL[16] = {
 };
 
 // mode is expected to be a derivative of VFO
-SimDTMF::SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
+SimDTMF::SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq)
     : SimDualTone(wave_gen_pool, fixed_freq) , _signal_meter(signal_meter) //, _telco_type(type)
 {
     // Initialize operator frustration drift tracking

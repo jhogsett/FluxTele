@@ -24,7 +24,7 @@
 class SimDTMF : public SimDualTone
 {
 public:
-    SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type);
+    SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq);
 
     virtual bool begin(unsigned long time) override;
     virtual bool update(Mode *mode) override;
