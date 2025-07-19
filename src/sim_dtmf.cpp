@@ -346,11 +346,15 @@ void SimDTMF::apply_operator_frustration_drift()
     // Realistic amateur radio operator frequency adjustment
     // ±250 Hz - keep nearby within listening range
     const float DRIFT_RANGE = 250.0f;
+    const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
 
     float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
 
     // Apply drift to the shared frequency
-    _fixed_freq = _fixed_freq + drift;
+    float new_freq = _fixed_freq + drift;
+    
+    // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
+    _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
 
     // Generate new random phone number if using random generation
     if (_use_random_numbers) {
@@ -364,28 +368,6 @@ void SimDTMF::apply_operator_frustration_drift()
     // Immediately update the wave generator frequency
     force_frequency_update();
 }
-
-// // left out because it could be causing the bug
-// // void SimDTMF::randomize() {
-// //     // CRITICAL: Ensure proper cleanup when station gets moved by StationManager
-// //     // This prevents wave generators from getting "stuck on" during station moves
-// //     end();  // Release all wave generators before randomizing
-    
-// //     // Generate new random phone number if using random generation
-// //     if (_use_random_numbers) {
-// //         generate_random_nanp_number();
-// //         _digit_sequence = _generated_number;  // Update pointer to new number
-// //         Serial.print("DTMF: Generated new random number: ");
-// //         Serial.println(_generated_number);
-// //     }
-    
-// //     // Reset AsyncDTMF sequence
-// //     _dtmf.reset_sequence();
-    
-// //     // Reset wait delay state
-// //     _in_wait_delay = false;
-// //     _next_cycle_time = 0;
-// // }
 
 void SimDTMF::randomize()
 {

@@ -37,8 +37,9 @@
 #define PIPELINE_LOOKAHEAD_RANGE 8000    // 8 kHz ahead/behind VFO - accommodate 7.2 kHz station placement
 #define PIPELINE_STATION_SPACING 5000    // Minimum 5 kHz between stations
 #define PIPELINE_AUDIBLE_RANGE 5000      // Range where stations become audible
-#define PIPELINE_REALLOC_THRESHOLD 3000  // Reallocate when VFO moves 3 kHz
+#define PIPELINE_REALLOC_THRESHOLD 6000  // Reallocate when VFO moves 6 kHz (60 steps at 100Hz tuning)
 #define PIPELINE_TUNE_DETECT_THRESHOLD 100  // Minimum Hz change to detect tuning activity
+#define VFO_TUNING_STEP_SIZE 100         // VFO tuning step size in Hz - stations must align to these increments
 
 class StationManager {
 public:

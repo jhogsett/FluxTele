@@ -7,8 +7,6 @@
 
 class SignalMeter; // Forward declaration
 
-#define SPACE_FREQUENCY2 SILENT_FREQ  // Use the DualTone silent frequency constant
-
 class SimTelco : public SimDualTone
 {
 public:

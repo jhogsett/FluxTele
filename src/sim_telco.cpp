@@ -10,7 +10,7 @@
 #include "sim_telco.h"
 #include "signal_meter.h"
 
-#define WAIT_SECONDS2 4
+#define DRIFT_COUNT 4
 
 // Telephony frequency offset constants (authentic DTMF frequencies)
 const float SimTelco::RINGBACK_FREQ_A = 440.0f;  // 440 Hz for ringback tone
@@ -36,7 +36,7 @@ SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float 
     
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
-    _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before frustration (realistic)
+    _cycles_until_qsy = DRIFT_COUNT + (random(DRIFT_COUNT));   // 3-8 cycles before frustration (realistic)
 
     // Initialize timing state
     _in_wait_delay = false;
@@ -56,13 +56,13 @@ bool SimTelco::begin(unsigned long time){
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_frequency(SPACE_FREQUENCY2, false);
+        wavegen_a->set_frequency(SILENT_FREQ, false);
     }
 
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
+        wavegen_c->set_frequency(SILENT_FREQ, false);
     }
 
     // Set enabled and force frequency update with existing _vfo_freq
@@ -150,6 +150,7 @@ bool SimTelco::step(unsigned long time){
         case STEP_TELCO_TURN_OFF:
             _active = false;
             realize();
+
             // No charge pulse when carrier turns off
             
             // Count completed cycles for frustration logic (when ring cycle ends)
@@ -159,7 +160,7 @@ bool SimTelco::step(unsigned long time){
                 apply_operator_frustration_drift();
                 // Reset frustration counter for next QSY
                 _cycles_completed = 0;
-                _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
+                _cycles_until_qsy = DRIFT_COUNT + (random(DRIFT_COUNT));   // 3-8 cycles before next frustration
             }
             break;
             
@@ -197,15 +198,20 @@ void SimTelco::set_retry_state(unsigned long next_try_time) {
 
 void SimTelco::apply_operator_frustration_drift()
 {
+
     // Move to a new frequency as if a whole new operator is on the air
     // Realistic amateur radio operator frequency adjustment
     // ±250 Hz - keep nearby within listening range
-    const float DRIFT_RANGE = 250.0f;
+    const float DRIFT_RANGE = 500.0f;
+    const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
 
     float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
 
     // Apply drift to the shared frequency
-    _fixed_freq = _fixed_freq + drift;
+    float new_freq = _fixed_freq + drift;
+
+    // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
+    _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
 
     // Immediately update the wave generator frequency
     force_frequency_update();
