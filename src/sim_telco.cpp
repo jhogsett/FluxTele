@@ -237,6 +237,20 @@ void SimTelco::apply_operator_frustration_drift()
     // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
     _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
 
+    // REALISM: Randomly switch to a different TelcoType (different telephone system)
+    // This simulates different operators or telephone exchanges coming on the air
+    TelcoType new_types[] = {TELCO_RINGBACK, TELCO_BUSY, TELCO_REORDER, TELCO_DIALTONE};
+    _telco_type = new_types[random(4)];  // Randomly pick one of the 4 types
+    
+    // Update frequency offsets for the new telco type
+    setFrequencyOffsetsForType();
+    
+    // Reconfigure AsyncTelco timing for the new type
+    _telco.configure_timing(_telco_type);
+    
+    // Reset frustration counter with new type-specific cycles
+    _cycles_until_qsy = calculateDriftCycles(_telco_type);
+
     // Immediately update the wave generator frequency
     force_frequency_update();
     
