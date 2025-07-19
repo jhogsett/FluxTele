@@ -94,10 +94,7 @@
 #include "sim_test.h"
 #endif
 
-#include "async_morse.h"
-
 #include "wave_gen_pool.h"
-
 
 #ifdef USE_EEPROM_TABLES
 #include "eeprom_tables.h"
@@ -241,8 +238,7 @@ SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter,  555350000L, TelcoType
 SimTelco cw_station2_test7(&wave_gen_pool, &signal_meter,  555400000L, TelcoType::TELCO_BUSY);  // Test station at 55.5 MHz
 SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter,  555450000L, TelcoType::TELCO_BUSY);  // Test station at 55.501 MHz
 SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555500000L, TelcoType::TELCO_REORDER);  // Test station at 55.5 MHz
-SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter, 555550000L, TelcoType::TELCO_REORDER);  // Test station at 55.501 MHz
-
+SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);  // Test station at 55.5 MHz
 SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
     &cw_station2_test1,
     &cw_station2_test2,
