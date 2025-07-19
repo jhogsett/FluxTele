@@ -108,6 +108,7 @@ protected:    // Common utility methods
     bool _active;       // True when transmitter should be active (shared)
     float _vfo_freq;    // Current VFO frequency (shared - there's only one VFO)
 
+    float _raw_frequency;   // Current frequency difference from VFO
     float _frequency;   // Current frequency difference from VFO
     float _frequency2;   // Current frequency difference from VFO
     
