@@ -254,69 +254,69 @@ void SimDualTone::force_frequency_update()
     }
 }
 
-void SimDualTone::force_frequency_update2()
-{
-    // // Immediately recalculate frequencies and update wave generators
-    // // This is used when _fixed_freq changes outside of the normal update() cycle
-    // // (e.g., frequency drift, dynamic station reallocation)
-    // // 
-    // // Without this, frequency changes would only take effect when the user turns
-    // // the tuning knob, causing the audio to stay at the old frequency while the
-    // // signal meter correctly shows the new frequency (confusing behavior).
-    // //
-    // // NOTE: This assumes the station currently holds all needed wave generators.
+// void SimDualTone::force_frequency_update2()
+// {
+//     // // Immediately recalculate frequencies and update wave generators
+//     // // This is used when _fixed_freq changes outside of the normal update() cycle
+//     // // (e.g., frequency drift, dynamic station reallocation)
+//     // // 
+//     // // Without this, frequency changes would only take effect when the user turns
+//     // // the tuning knob, causing the audio to stay at the old frequency while the
+//     // // signal meter correctly shows the new frequency (confusing behavior).
+//     // //
+//     // // NOTE: This assumes the station currently holds all needed wave generators.
 
-    Serial.println("ffu2-----------");
+//     Serial.println("ffu2-----------");
     
-    // if(!_enabled){
-    //     Serial.println("ffu2 not enabled");
-    // }
+//     // if(!_enabled){
+//     //     Serial.println("ffu2 not enabled");
+//     // }
 
-    // if(!has_all_realizers()){
-    //     Serial.println("ffu2 not all realizers");
-    // }
+//     // if(!has_all_realizers()){
+//     //     Serial.println("ffu2 not all realizers");
+//     // }
 
-    // if(!_active){
-    //     Serial.println("ffu2 not active");
-    // }
+//     // if(!_active){
+//     //     Serial.println("ffu2 not active");
+//     // }
     
-    // if(!_enabled || !has_all_realizers()) {
-    //     return;  // Skip if not enabled or missing realizers
-    // }
+//     // if(!_enabled || !has_all_realizers()) {
+//     //     return;  // Skip if not enabled or missing realizers
+//     // }
     
-    int realizer_index = 0;  // Track which realizer to use
+//     int realizer_index = 0;  // Track which realizer to use
     
-    // if(!_active)
-    //     return;
+//     // if(!_active)
+//     //     return;
 
-    // Serial.println("ffu-----------");
+//     // Serial.println("ffu-----------");
     
-    float raw_frequency = _vfo_freq - _fixed_freq;
-    _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
+//     float raw_frequency = _vfo_freq - _fixed_freq;
+//     _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
    
-    // Serial.println(_frequency);
+//     // Serial.println(_frequency);
     
-    int realizer_a = get_realizer(realizer_index++);
-    if(realizer_a != -1) {
-        WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen->set_frequency(_frequency);
-        Serial.println("this ruins it 1");
-        Serial.println(_frequency);
-    }
+//     int realizer_a = get_realizer(realizer_index++);
+//     if(realizer_a != -1) {
+//         WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
+//         wavegen->set_frequency(_frequency);
+//         Serial.println("this ruins it 1");
+//         Serial.println(_frequency);
+//     }
     
-    float raw_frequency2 = _vfo_freq - _fixed_freq;
-    _frequency2 = raw_frequency2 + option_bfo_offset + getFrequencyOffsetC();
+//     float raw_frequency2 = _vfo_freq - _fixed_freq;
+//     _frequency2 = raw_frequency2 + option_bfo_offset + getFrequencyOffsetC();
 
-    // Serial.println(_frequency2);
+//     // Serial.println(_frequency2);
     
-    int realizer_c = get_realizer(realizer_index++);
-    if(realizer_c != -1) {
-        WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(_frequency2);
-        Serial.println("this ruins it 2");
-        Serial.println(_frequency2);
-    }
-}
+//     int realizer_c = get_realizer(realizer_index++);
+//     if(realizer_c != -1) {
+//         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
+//         wavegen_c->set_frequency(_frequency2);
+//         Serial.println("this ruins it 2");
+//         Serial.println(_frequency2);
+//     }
+// }
 
 // Centralized charge pulse logic for all simulated stations
 void SimDualTone::send_carrier_charge_pulse(SignalMeter* signal_meter) {

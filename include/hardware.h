@@ -35,3 +35,5 @@
 #endif
 
 #endif
+
+#define SIGNAL_METER_PIN 12
