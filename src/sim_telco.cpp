@@ -10,9 +10,12 @@
 #include "sim_telco.h"
 #include "signal_meter.h"
 
+#define TELCO_TYPES_COUNT 4
+#define DEFAULT_CYCLES 4
+
 // Per-TelcoType drift settings for realistic operator behavior
 // Minimum cycles before station moves (base persistence)
-const int DRIFT_MIN_CYCLES[4] = {
+const int DRIFT_MIN_CYCLES[TELCO_TYPES_COUNT] = {
     4,  // TELCO_RINGBACK - ringback signals are moderately persistent
     8,  // TELCO_BUSY - busy signals are moderately persistent  
     12,  // TELCO_REORDER - reorder signals are moderately persistent
@@ -20,7 +23,7 @@ const int DRIFT_MIN_CYCLES[4] = {
 };
 
 // Additional random cycles beyond minimum (creates range)
-const int DRIFT_ADDITIONAL_CYCLES[4] = {
+const int DRIFT_ADDITIONAL_CYCLES[TELCO_TYPES_COUNT] = {
     4,  // TELCO_RINGBACK - range: 4-8 cycles (same as before)
     8,  // TELCO_BUSY - range: 4-8 cycles (same as before)
     12,  // TELCO_REORDER - range: 4-8 cycles (same as before)  
@@ -42,10 +45,10 @@ const float SimTelco::RING_FREQ_C = SimTelco::RINGBACK_FREQ_C;
 // Helper function to calculate drift cycles based on TelcoType
 int calculateDriftCycles(TelcoType type) {
     int type_index = (int)type;  // Convert enum to array index
-    if (type_index >= 0 && type_index < 4) {
+    if (type_index >= 0 && type_index < TELCO_TYPES_COUNT) {
         return DRIFT_MIN_CYCLES[type_index] + random(DRIFT_ADDITIONAL_CYCLES[type_index]);
     }
-    return 4 + random(4);  // Fallback to original behavior
+    return DEFAULT_CYCLES + random(DEFAULT_CYCLES);  // Fallback to original behavior
 }
 
 // mode is expected to be a derivative of VFO
