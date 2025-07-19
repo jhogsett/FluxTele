@@ -321,9 +321,9 @@ void debug_station_pool_state() {
     Serial.println("=== END STATION DEBUG ===");
 }
 
-VFO vfoa("EXC A", 555123400L, 100, &realization_pool);
-VFO vfob("EXC B", 867530900L, 100, &realization_pool);
-VFO vfoc("EXC C", 123456789L, 100, &realization_pool);
+VFO vfoa("EXC 555", 555123400L, 100, &realization_pool);
+VFO vfob("EXC 867", 867530900L, 100, &realization_pool);
+VFO vfoc("EXC 123", 123456789L, 100, &realization_pool);
 
 Contrast contrast("Contrast");
 BFO bfo("Offset");
