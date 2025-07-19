@@ -237,9 +237,9 @@ SimTelco cw_station2_test5(&wave_gen_pool, &signal_meter,  555300000L, TelcoType
 SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter,  555350000L, TelcoType::TELCO_RINGBACK);
 SimDTMF cw_station2_test7(&wave_gen_pool, &signal_meter,   555400000L);
 SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter,  555450000L, TelcoType::TELCO_BUSY);
-// SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555500000L, TelcoType::TELCO_REORDER);
-// SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);
-SimDualTone *station_pool[8] = {  // Now using SimDualTone base class
+SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555500000L, TelcoType::TELCO_REORDER);
+SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);
+SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
     &cw_station2_test1,
     &cw_station2_test2,
     &cw_station2_test3,
@@ -248,12 +248,12 @@ SimDualTone *station_pool[8] = {  // Now using SimDualTone base class
     &cw_station2_test6,
     &cw_station2_test7,
     &cw_station2_test8
-	// ,
-    // &cw_station2_test9,
-    // &cw_station2_test10
+	,
+    &cw_station2_test9,
+    &cw_station2_test10
 };
 
-Realization *realizations[8] = {  // Only 1 entry for test config
+Realization *realizations[10] = {  // Only 1 entry for test config
     &cw_station2_test1,
     &cw_station2_test2,
     &cw_station2_test3,
@@ -262,9 +262,9 @@ Realization *realizations[8] = {  // Only 1 entry for test config
     &cw_station2_test6,
     &cw_station2_test7,
     &cw_station2_test8
-	// ,
-    // &cw_station2_test9,
-    // &cw_station2_test10
+	,
+    &cw_station2_test9,
+    &cw_station2_test10
 };
 #endif
 
@@ -276,13 +276,13 @@ Realization *realizations[8] = {  // Only 1 entry for test config
 #if defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 bool realization_stats[2] = {false, false};  // Single SimTelco test station
 #elif defined(CONFIG_ALLTELCO)
-bool realization_stats[8] = {false, false, false, false, false, false, false, false};  // Single SimTelco test station
+bool realization_stats[10] = {false, false, false, false, false, false, false, false, false, false};  // Single SimTelco test station
 #endif
 
 #if defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_ALLTELCO)
-RealizationPool realization_pool(realizations, realization_stats, 8);  // *** CRITICAL: Count must match arrays above! ***
+RealizationPool realization_pool(realizations, realization_stats, 10);  // *** CRITICAL: Count must match arrays above! ***
 #endif
 
 // ============================================================================
@@ -293,7 +293,7 @@ RealizationPool realization_pool(realizations, realization_stats, 8);  // *** CR
 #if defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 #elif defined(CONFIG_ALLTELCO)
-StationManager station_manager(realizations, 8);  // Use optimized constructor with shared array
+StationManager station_manager(realizations, 10);  // Use optimized constructor with shared array
 #endif
 
 // Timer for periodic exchange signal randomization (authentic telephony behavior)

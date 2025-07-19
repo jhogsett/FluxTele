@@ -23,7 +23,7 @@
 #elif defined(CONFIG_SIMDTMF)
 #define MAX_STATIONS 2
 #elif defined(CONFIG_ALLTELCO)
-#define MAX_STATIONS 8
+#define MAX_STATIONS 10
 #else
 #define MAX_STATIONS 4  // Default fallback
 #endif
