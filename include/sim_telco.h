@@ -51,7 +51,7 @@ private:
     unsigned long _next_cycle_time; // Time to start next transmission cycle
 
 private:
-    void apply_operator_frustration_drift();
+    void randomize_station();
     void setFrequencyOffsetsForType();  // Set frequency offsets based on telco type
 
 protected:

@@ -180,8 +180,8 @@ bool SimTelco::step(unsigned long time){
             // Count completed cycles for frustration logic (when ring cycle ends)
             _cycles_completed++;
             if(_cycles_completed >= _cycles_until_qsy) {
-                // Operator gets frustrated, QSYs to new frequency
-                apply_operator_frustration_drift();
+                // Station cycles to new parameters for dynamic listening experience
+                randomize_station();
                 // Reset frustration counter for next QSY
                 _cycles_completed = 0;
                 _cycles_until_qsy = calculateDriftCycles(_telco_type);  // Per-type drift cycles
@@ -220,9 +220,9 @@ void SimTelco::set_retry_state(unsigned long next_try_time) {
     _next_cycle_time = next_try_time;
 }
 
-void SimTelco::apply_operator_frustration_drift()
+void SimTelco::randomize_station()
 {
-
+#ifdef ENABLE_FREQ_DRIFT
     // Move to a new frequency as if a whole new operator is on the air
     // Realistic amateur radio operator frequency adjustment
     // ±250 Hz - keep nearby within listening range
@@ -236,6 +236,7 @@ void SimTelco::apply_operator_frustration_drift()
 
     // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
     _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
+#endif
 
     // REALISM: Randomly switch to a different TelcoType (different telephone system)
     // This simulates different operators or telephone exchanges coming on the air
@@ -250,9 +251,11 @@ void SimTelco::apply_operator_frustration_drift()
     
     // Reset frustration counter with new type-specific cycles
     _cycles_until_qsy = calculateDriftCycles(_telco_type);
-
+    
+#ifdef ENABLE_FREQ_DRIFT
     // Immediately update the wave generator frequency
     force_frequency_update();
+#endif
     
     // REALISM: Add 3-5 second delay before operator starts transmitting again
     // This simulates the time needed for retuning and getting back on the air

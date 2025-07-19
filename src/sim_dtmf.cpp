@@ -199,8 +199,8 @@ bool SimDTMF::step(unsigned long time){
             // Count completed cycles for frustration logic (when ring cycle ends)
             _cycles_completed++;
             if(_cycles_completed >= _cycles_until_qsy) {
-                // Operator gets frustrated, QSYs to new frequency
-                apply_operator_frustration_drift();
+                // Station cycles to new parameters for dynamic listening experience
+                randomize_station();
                 // Reset frustration counter for next QSY
                 _cycles_completed = 0;
                 _cycles_until_qsy = 3 + (random(8));   // 3-8 cycles before next frustration
@@ -340,7 +340,7 @@ void SimDTMF::generate_random_nanp_number() {
 //     _next_cycle_time = next_try_time;
 // }
 
-void SimDTMF::apply_operator_frustration_drift()
+void SimDTMF::randomize_station()
 {
     // Move to a new frequency as if a whole new operator is on the air
     // Realistic amateur radio operator frequency adjustment
