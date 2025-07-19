@@ -543,20 +543,16 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 
 #ifdef CONFIG_ALLTELCO
 
-SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
-SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55505000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
-
-SimTelco cw_station2_test3(&wave_gen_pool, &signal_meter, 555100000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.5 MHz
-SimTelco cw_station2_test4(&wave_gen_pool, &signal_meter, 55515000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.501 MHz
-
-SimTelco cw_station2_test5(&wave_gen_pool, &signal_meter, 55520000.0, TelcoType::TELCO_RINGBACK);  // Test station at 55.5 MHz
-SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter, 55525000.0, TelcoType::TELCO_RINGBACK);  // Test station at 55.501 MHz
-
-SimTelco cw_station2_test7(&wave_gen_pool, &signal_meter, 55530000.0, TelcoType::TELCO_BUSY);  // Test station at 55.5 MHz
-SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter, 55535000.0, TelcoType::TELCO_BUSY);  // Test station at 55.501 MHz
-
-SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter, 55540000.0, TelcoType::TELCO_REORDER);  // Test station at 55.5 MHz
-SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter, 55545000.0, TelcoType::TELCO_REORDER);  // Test station at 55.501 MHz
+SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter,   55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
+SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter,   55501000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
+SimTelco cw_station2_test3(&wave_gen_pool, &signal_meter,  55502000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.5 MHz
+SimTelco cw_station2_test4(&wave_gen_pool, &signal_meter,  55503000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.501 MHz
+SimTelco cw_station2_test5(&wave_gen_pool, &signal_meter,  55504000.0, TelcoType::TELCO_RINGBACK);  // Test station at 55.5 MHz
+SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter,  55505000.0, TelcoType::TELCO_RINGBACK);  // Test station at 55.501 MHz
+SimTelco cw_station2_test7(&wave_gen_pool, &signal_meter,  55506000.0, TelcoType::TELCO_BUSY);  // Test station at 55.5 MHz
+SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter,  55507000.0, TelcoType::TELCO_BUSY);  // Test station at 55.501 MHz
+SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  55508000.0, TelcoType::TELCO_REORDER);  // Test station at 55.5 MHz
+SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter, 55509000.0, TelcoType::TELCO_REORDER);  // Test station at 55.501 MHz
 
 SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
     &cw_station2_test1,
