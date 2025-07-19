@@ -6,9 +6,9 @@
 #include "station_config.h"
 #include "saved_data.h"
 
-VFO::VFO(const char *title, float frequency, unsigned long step, RealizationPool *realization_pool) : Mode(title)
+VFO::VFO(const char *title, long frequency, unsigned long step, RealizationPool *realization_pool) : Mode(title)
 {
-    _frequency = long(frequency);
+    _frequency = frequency;
     _sub_frequency = int((frequency - _frequency) * 10.0);
     _step = step;
     _realization_pool = realization_pool;
@@ -17,31 +17,31 @@ VFO::VFO(const char *title, float frequency, unsigned long step, RealizationPool
 // step needs to be in 0.1Hz units
 // when step is 0.1Hz, use xxxxxxx.y format
 void VFO::update_display(HT16K33Disp *display){
-    if(_frequency >= 100000000L){
+    if(_frequency >= 1000000000L){
         // Display as 2450.0000 in MHz
         int megpart = _frequency / 1000000L;
+
         long decpart = _frequency - (megpart * 1000000L);
+        
         int decparti = decpart / 100L;
         
         sprintf(display_text_buffer, "%4d.%04d", megpart, decparti);
         
-    } else if(_frequency >= 10000000L) {
+    } else if(_frequency >= 100000000L) {
         // Display 7,015,089 as 7015.089 in KHz
         // int megpart = _frequency / 1000000L;
         // long remainder = _frequency - (megpart * 1000000L);
-
+        
         // int kilpart = remainder / 1000L;
         // remainder = remainder - (kilpart * 1000L);
-
+        
         // int unipart = remainder;
         
         // sprintf(display_text_buffer, "%2d.%03d.%03d", megpart, kilpart, unipart);
-        int prepart = _frequency / 100000L;
-        long remainder = _frequency - (prepart * 100000L);
-
-        int sufpart = remainder / 10L;
-
-        sprintf(display_text_buffer, "%3d-%04d", prepart, sufpart);
+        long prepart = _frequency / 1000000L;
+        long remainder = _frequency - (prepart * 1000000L);
+        long sufpart = remainder / 100L;
+        sprintf(display_text_buffer, "%3ld-%04ld", prepart, sufpart);
         
     } else {
         // Display in Hz
