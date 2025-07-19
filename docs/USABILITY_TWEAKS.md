@@ -163,6 +163,68 @@ for (int i = candidate_count - 1; i > 0; --i) {
 
 ---
 
+## Tweak #5: Realistic Human DTMF Timing Patterns
+
+**Date**: July 19, 2025  
+**Problem**: DTMF dialing sounded unnaturally mechanical with fixed timing patterns that no human could replicate. All tones were exactly 150ms with exactly 150ms gaps, creating robotic-sounding phone number sequences that broke immersion.
+
+**Root Cause**: The AsyncDTMF timing used mechanical precision constants:
+- Fixed 150ms tone duration (too short and uniform)
+- Fixed 150ms inter-tone silence (no human variation)  
+- Fixed 350ms digit gaps (ignoring human dialing psychology)
+- No consideration for human behavior patterns (fast repeated digits, thinking pauses, etc.)
+
+**Solution**: 
+Implemented human-like timing variations based on real touch-tone dialing behavior analysis in `include/async_dtmf.h` and `src/async_dtmf.cpp`:
+
+1. **Variable tone durations**: 200-400ms (humans hold buttons longer with natural variation)
+2. **Variable silence**: 100-200ms (natural finger movement variation) 
+3. **Context-aware digit gaps** based on human psychology:
+   - **Fast gaps (200-300ms)** for repeated digits ("00", "555", "99")
+   - **Thinking pauses (500-700ms)** at natural sequence positions:
+     - Position 1: After country code digit (like "1")
+     - Position 4: After area code (pause before exchange)  
+     - Position 7: After exchange prefix (pause before subscriber number)
+   - **Normal variation (200-800ms)** for other digit transitions
+
+```cpp
+// New human-like timing ranges
+#define DTMF_TONE_MIN_DURATION     200   // Humans hold buttons longer
+#define DTMF_TONE_MAX_DURATION     400   // Natural variation
+#define DTMF_SILENCE_MIN_DURATION  100   // Variable finger movement
+#define DTMF_SILENCE_MAX_DURATION  200   
+#define DTMF_DIGIT_GAP_MIN         200   // Fast for repeated digits  
+#define DTMF_DIGIT_GAP_MAX         800   // Thinking pauses
+
+// Smart gap calculation based on sequence position and digit patterns
+unsigned long calculateDigitGap(char current_digit, char previous_digit) {
+    if (current_digit == previous_digit) {
+        return 200-300ms;  // Fast repeated digits
+    }
+    if (position == 1 || position == 4 || position == 7) {
+        return 500-700ms;  // Natural breaking points in phone numbers
+    }
+    return 200-800ms;  // Normal variation
+}
+```
+
+**Expected Impact**:
+- DTMF dialing sounds natural and human-like
+- Eliminates mechanical precision that breaks immersion
+- Creates authentic touch-tone telephone experience
+- Different phone numbers have unique "personality" in dialing rhythm
+- Matches real human behavior patterns documented in analysis
+
+**Testing Notes**:
+- Listen for natural variation in tone lengths and pauses
+- Verify repeated digits sound faster (like "555" or "00")
+- Check for realistic thinking pauses at natural break points
+- Ensure each phone number sounds slightly different when repeated
+- Confirm overall dialing rhythm feels authentically human
+- Test with various phone number patterns for variety
+
+---
+
 ## Future Tweak Ideas
 
 **Potential Areas for Improvement** (to be tested and documented as implemented):
