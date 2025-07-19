@@ -1,7 +1,7 @@
 #ifndef __SIM_DTMF_H__
 #define __SIM_DTMF_H__
 
-#include "async_telco.h"
+// #include "async_telco.h"
 #include "async_dtmf.h"
 #include "sim_dualtone.h"
 #include "telco_types.h"
@@ -17,7 +17,7 @@
 #define DTMF_COL_3    1477.0f    // Columns 3, 6, 9, #
 #define DTMF_COL_4    1633.0f    // Columns A, B, C, D
 
-class SignalMeter; // Forward declaration
+// class SignalMeter; // Forward declaration
 
 // #define SPACE_FREQUENCY2 SILENT_FREQ  // Use the DualTone silent frequency constant
 
@@ -32,31 +32,31 @@ public:
     void realize();
     virtual void randomize() override;  // Re-randomize station properties
     
-    // Set station into retry state (used when initialization fails)
-    void set_retry_state(unsigned long next_try_time);
+//     // Set station into retry state (used when initialization fails)
+//     void set_retry_state(unsigned long next_try_time);
 
-    bool update2();
+//     bool update2();
 
-private:
+// private:
     SignalMeter *_signal_meter;
 
-    AsyncTelco _telco;              // AsyncTelco for ring cadence timing
-    TelcoType _telco_type;          // Type of telco signal (Ring, Busy, Reorder)
+//     AsyncTelco _telco;              // AsyncTelco for ring cadence timing
+//     TelcoType _telco_type;          // Type of telco signal (Ring, Busy, Reorder)
     
     float _frequency_offset_a;      // Primary frequency offset (Hz)
     float _frequency_offset_c;      // Secondary frequency offset (Hz)
     
-    // Telephony frequency offset constants
-    static const float RINGBACK_FREQ_A;  // 440 Hz for ringback tone
-    static const float RINGBACK_FREQ_C;  // 480 Hz for ringback tone  
-    static const float BUSY_FREQ_A;      // 480 Hz for busy/reorder signals
-    static const float BUSY_FREQ_C;      // 620 Hz for busy/reorder signals
-    static const float DIAL_FREQ_A;      // 350 Hz for dial tone
-    static const float DIAL_FREQ_C;      // 440 Hz for dial tone
+//     // Telephony frequency offset constants
+//     static const float RINGBACK_FREQ_A;  // 440 Hz for ringback tone
+//     static const float RINGBACK_FREQ_C;  // 480 Hz for ringback tone  
+//     static const float BUSY_FREQ_A;      // 480 Hz for busy/reorder signals
+//     static const float BUSY_FREQ_C;      // 620 Hz for busy/reorder signals
+//     static const float DIAL_FREQ_A;      // 350 Hz for dial tone
+//     static const float DIAL_FREQ_C;      // 440 Hz for dial tone
     
-    // Legacy aliases for backward compatibility
-    static const float RING_FREQ_A;      // Deprecated: use RINGBACK_FREQ_A
-    static const float RING_FREQ_C;      // Deprecated: use RINGBACK_FREQ_C
+//     // Legacy aliases for backward compatibility
+//     static const float RING_FREQ_A;      // Deprecated: use RINGBACK_FREQ_A
+//     static const float RING_FREQ_C;      // Deprecated: use RINGBACK_FREQ_C
     
     // Operator frustration frequency drift
     int _cycles_completed;          // Number of complete on/off cycles sent
@@ -74,14 +74,14 @@ private:
     bool _use_random_numbers;       // True if generating random phone numbers
     char _generated_number[12];     // Buffer for generated phone number (11 digits + null)
     
-    // AsyncDTMF timing manager (similar to AsyncTelco in SimTelco)
+//     // AsyncDTMF timing manager (similar to AsyncTelco in SimTelco)
     AsyncDTMF _dtmf;
     
-    // Current digit frequencies
-    // float _current_row_freq;
-    // float _current_col_freq;
+//     // Current digit frequencies
+//     // float _current_row_freq;
+//     // float _current_col_freq;
 
-    // DTMF frequency lookup tables
+//     // DTMF frequency lookup tables
     static const float ROW_FREQUENCIES[4];
     static const float COL_FREQUENCIES[4];
     static const int DIGIT_TO_ROW[16];
@@ -92,12 +92,12 @@ private:
     int char_to_digit_index(char c);
     void generate_random_nanp_number();  // Generate random North American phone number
     
-private:
-    void apply_operator_frustration_drift();
-    void setFrequencyOffsetsForType();  // Set frequency offsets based on telco type
+// private:
+//     void apply_operator_frustration_drift();
+//     void setFrequencyOffsetsForType();  // Set frequency offsets based on telco type
 
-protected:
-    // Override frequency offset methods to use stored values instead of macros
+// protected:
+//     // Override frequency offset methods to use stored values instead of macros
     virtual float getFrequencyOffsetA() const override;
     virtual float getFrequencyOffsetC() const override;
 };

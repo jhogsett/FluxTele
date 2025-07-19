@@ -1,25 +1,98 @@
-#include "station_config.h"
 
+#define EVERYTHING_ON
+
+#define ALLOWED_1
+#define ALLOWED_2
+#define ALLOWED_3
+#define ALLOWED_4
+#define ALLOWED_5
+#define ALLOWED_6
+#define ALLOWED_7A
+#define ALLOWED_7B
+#define ALLOWED_7C
+#define ALLOWED_7D
+
+// THIS STOPS IT
+#define ALLOWED_7E
+#define ALLOWED_7E1
+#define ALLOWED_7E2
+#define ALLOWED_7E3
+#define ALLOWED_7E4
+#define ALLOWED_7F
+#define ALLOWED_7G
+#define ALLOWED_7H
+#define ALLOWED_7I
+
+#define ALLOWED_8
+#define ALLOWED_9
+#define ALLOWED_10
+#define ALLOWED_11
+
+
+#ifdef EVERYTHING_ON
+#include "station_config.h"
+#endif
+
+#ifdef ALLOWED_1
 #include <Arduino.h>
+#endif
+
+#ifdef ALLOWED_4
 #include <Wire.h>
+#endif
+
+#ifdef ALLOWED_6
 #include <MD_AD9833.h>
+#endif
+
+#ifdef EVERYTHING_ON
 #include <Encoder.h>
 #include <Adafruit_NeoPixel.h>
+#endif
 
+#ifdef ALLOWED_4
 #include "displays.h"
+#endif
+
+#ifdef ALLOWED_3
 #include "hardware.h"
+#endif
+
+#ifdef EVERYTHING_ON
+
 #include "leds.h"
+#endif
+
+#ifdef ALLOWED_2
 #include "saved_data.h"
 #include "seeding.h"
-#include "utils.h"
-#include "signal_meter.h"
-#include "station_config.h"
-#include "station_manager.h"
+#endif
 
+#ifdef ALLOWED_8
+#include "utils.h"
+#endif
+
+#ifdef ALLOWED_5
+#include "signal_meter.h"
+#endif
+
+#ifdef EVERYTHING_ON
+#include "station_config.h"
+#endif
+
+#ifdef ALLOWED_7A
+#include "station_manager.h"
+#endif
+
+#ifdef EVERYTHING_ON
 #include "encoder_handler.h"
 
 #include "vfo.h"
+#endif
+
+#ifdef ALLOWED_8
 #include "vfo_tuner.h"
+
 #include "event_dispatcher.h"
 
 #include "contrast.h"
@@ -28,16 +101,24 @@
 #include "bfo_handler.h"
 #include "flashlight.h"
 #include "flashlight_handler.h"
+#endif
 
+#ifdef EVERYTHING_ON
 #include "wavegen.h"
 
 #ifdef ENABLE_MORSE_STATION
 #include "sim_station.h"
 #endif
 
+#endif
+
+#ifdef ALLOWED_7B
 #ifdef ENABLE_SIMTELCO_TEST
 #include "sim_dtmf.h"
 #endif
+#endif
+
+#ifdef EVERYTHING_ON
 
 #ifdef ENABLE_DTMF_TEST
 #include "sim_dtmf.h"
@@ -79,8 +160,13 @@
 #endif
 
 #include "async_morse.h"
+#endif
 
+#ifdef ALLOWED_7C
 #include "wave_gen_pool.h"
+#endif
+
+#ifdef EVERYTHING_ON
 
 #ifdef USE_EEPROM_TABLES
 #include "eeprom_tables.h"
@@ -107,19 +193,25 @@
 #define SWB 7
 
 #define PULSES_PER_DETENT 2
+#endif
 
+#ifdef ALLOWED_8
 // Display handling
 // show a display string for 700ms before beginning scrolling for ease of reading
 #define DISPLAY_SHOW_TIME 800  // Restored to original value
 // scroll the display every 90ms for ease of reading
 #define DISPLAY_SCROLL_TIME 70
+#endif
+
+#ifdef EVERYTHING_ON
 // scroll flipped options every 100ms
 #define OPTION_FLIP_SCROLL_TIME 100
 
 EncoderHandler encoder_handlerA(0, CLKA, DTA, SWA, PULSES_PER_DETENT);
 EncoderHandler encoder_handlerB(1, CLKB, DTB, SWB, PULSES_PER_DETENT);
+#endif
 
-
+#ifdef ALLOWED_6
 // Pins for SPI comm with the AD9833 IC
 const byte PIN_DATA = 11;  ///< SPI Data pin number
 const byte PIN_CLK = 13;  	///< SPI Clock pin number
@@ -132,7 +224,9 @@ MD_AD9833 AD1(PIN_DATA, PIN_CLK, PIN_FSYNC1); // Arbitrary SPI pins
 MD_AD9833 AD2(PIN_DATA, PIN_CLK, PIN_FSYNC2); // Arbitrary SPI pins
 MD_AD9833 AD3(PIN_DATA, PIN_CLK, PIN_FSYNC3); // Arbitrary SPI pins
 MD_AD9833 AD4(PIN_DATA, PIN_CLK, PIN_FSYNC4); // Arbitrary SPI pins
+#endif
 
+#ifdef ALLOWED_7D
 WaveGen wavegen1(&AD1);
 WaveGen wavegen2(&AD2);
 WaveGen wavegen3(&AD3);
@@ -141,10 +235,14 @@ WaveGen wavegen4(&AD4);
 WaveGen *wavegens[4] = {&wavegen1, &wavegen2, &wavegen3, &wavegen4};
 bool realizer_stats[4] = {false, false, false, false};
 WaveGenPool wave_gen_pool(wavegens, realizer_stats, 4);
+#endif
 
+#ifdef ALLOWED_5
 // Signal meter instance
 SignalMeter signal_meter;
+#endif
 
+#ifdef EVERYTHING_ON
 // ============================================================================
 // STATION CONFIGURATION - Conditional compilation based on station_config.h
 // ============================================================================
@@ -480,23 +578,39 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 };
 #endif
 
+#endif
+
+#ifdef ALLOWED_7E
 #ifdef CONFIG_SIMTELCO_TEST
+
+#ifdef ALLOWED_7E1
 // TEST: Single SimTelco station for testing duplicate class functionality
 SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
-SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
+#endif
 
+#ifdef ALLOWED_7E2
+SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
+#endif
+
+#ifdef ALLOWED_7E3
 SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1
 	,
     &cw_station2_test2
 };
+#endif
 
+#ifdef ALLOWED_7E4
 Realization *realizations[2] = {  // Only 1 entry for test config
 	&cw_station2_test1
 	,
 	&cw_station2_test2
 };
 #endif
+#endif
+#endif
+
+#ifdef EVERYTHING_ON
 
 #ifdef CONFIG_DTMF_TEST
 // TEST: Two DTMF stations for testing digit sequence playback (meets two-station minimum)
@@ -664,6 +778,14 @@ bool realization_stats[3] = {false, false, false};  // 3 stations for MIXED (CW1
 bool realization_stats[4] = {false, false, false, false};
 #endif
 
+#endif
+
+#ifdef ALLOWED_7F
+// bool realization_stats[2] = {false, false};  // Single SimTelco test station
+#endif
+
+#ifdef EVERYTHING_ON
+
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_SIMTELCO_TEST)
@@ -689,6 +811,15 @@ RealizationPool realization_pool(realizations, realization_stats, 3);  // *** CR
 #else
 RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CRITICAL: Count must match arrays above! ***
 #endif
+
+#endif
+
+#ifdef ALLOWED_7G
+// RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
+#endif
+
+#ifdef EVERYTHING_ON
+
 
 // ============================================================================
 // STATION MANAGER - Initialize with shared realizations array (FluxTune optimization)
@@ -721,6 +852,14 @@ StationManager station_manager(realizations, 3);  // Use optimized constructor w
 StationManager station_manager(realizations, 4);  // Use optimized constructor with shared array
 #endif
 
+#endif
+
+#ifdef ALLOWED_7H
+// StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+#endif
+
+#ifdef EVERYTHING_ON
+
 // Timer for periodic exchange signal randomization (authentic telephony behavior)
 unsigned long last_exchange_randomization = 0;
 const unsigned long EXCHANGE_RANDOMIZE_INTERVAL = 30000;  // 30 seconds between signal changes
@@ -747,7 +886,9 @@ void debug_station_pool_state() {
     Serial.println(actual_count);
     Serial.println("=== END STATION DEBUG ===");
 }
+#endif
 
+#ifdef ALLOWED_8
 VFO vfoa("EXC A", 55500000.0, 10, &realization_pool);
 VFO vfob("EXC B", 99900000.0, 10, &realization_pool);
 VFO vfoc("EXC C", 11100000.0, 1, &realization_pool);
@@ -775,7 +916,9 @@ int current_dispatcher = 1;
 
 #define APP_SIMRADIO 1
 #define APP_SETTINGS 2
+#endif
 
+#ifdef ALLOWED_4
 void setup_display(){
 	Wire.begin();
 
@@ -783,11 +926,15 @@ void setup_display(){
 	display.init(display_brightnesses);
 	display.clear();
 }
+#endif
 
+#ifdef ALLOWED_5
 void setup_signal_meter(){
 	signal_meter.init();
 }
+#endif
 
+#ifdef ALLOWED_3
 void setup_leds(){
 	for(byte i = FIRST_LED; i <= LAST_LED; i++){
 		pinMode(i, OUTPUT);
@@ -798,16 +945,32 @@ void setup_leds(){
 	// button_leds.begin(time, LEDHandler::STYLE_BLANKING, DEFAULT_BUTTON_LEDS_SHOW_TIME, DEFAULT_BUTTON_LEDS_BLANK_TIME);
 	// all_leds.begin(time, LEDHandler::STYLE_RANDOM | LEDHandler::STYLE_BLANKING | LEDHandler::STYLE_MIRROR, DEFAULT_ALL_LEDS_SHOW_TIME, DEFAULT_ALL_LEDS_BLANK_TIME);
 }
+#endif
 
+#ifdef EVERYTHING_ON
 void setup_buttons(){
 	// for(byte i = 0; i < NUM_BUTTONS; i++){
 	// 	pinMode(i + FIRST_BUTTON, 0x03); // INPUT_PULLDOWN ?!
 	// 	button_states[i] = false;
 	// }
 }
+#endif
 
+// void setup(){
+// 	Serial.begin(115200);
+// 	Serial.println("SETUP");
+// }
+
+// void loop(){
+// 	Serial.println("LOOP");
+// 	while(true);
+// }
+
+
+#ifdef ALLOWED_2
 void setup(){
 	Serial.begin(115200);
+	Serial.println("SETUP");
 	randomizer.randomize();
 
 #ifdef USE_EEPROM_TABLES
@@ -820,11 +983,21 @@ void setup(){
 #endif
 
 	load_save_data();
+#endif
 
+#ifdef ALLOWED_3
 	setup_leds();
-	setup_display();
-	setup_signal_meter();
+#endif
 
+#ifdef ALLOWED_4
+	setup_display();
+#endif
+
+#ifdef ALLOWED_5
+	setup_signal_meter();
+#endif
+
+#ifdef ALLOWED_6
 	AD1.begin();
 	AD1.setFrequency((MD_AD9833::channel_t)0, 0.1);
 	AD1.setFrequency((MD_AD9833::channel_t)1, 0.1);
@@ -843,20 +1016,33 @@ void setup(){
 	AD4.setFrequency((MD_AD9833::channel_t)0, 0.1);
 	AD4.setFrequency((MD_AD9833::channel_t)1, 0.1);
 	AD4.setMode(MD_AD9833::MODE_SINE);
+#endif
 
+#ifdef EVERYTHING_ON
 	// Initialize StationManager with dynamic pipelining
 #if defined(CONFIG_PAGER2_TEST) || defined(CONFIG_DTMF_TEST)
 	// For simple single-station testing, disable dynamic pipelining
 	// This ensures the station starts immediately without requiring tuning knob interaction
 	station_manager.enableDynamicPipelining(false);
 #else
+#endif
+#endif
+
+#ifdef ALLOWED_7I
 	station_manager.enableDynamicPipelining(true);
 	station_manager.setupPipeline(55500000); // Start with VFO A frequency (55.5 MHz)
 #endif
 	
+#ifdef EVERYTHING_ON
 	// DEBUG: Check for station pool array bounds bug
 	debug_station_pool_state();
+#endif
+
+#ifdef ALLOWED_2
 }
+#endif
+
+#ifdef EVERYTHING_ON
 
 #ifdef ENABLE_BRANDING_MODE
 // ============================================================================
@@ -922,6 +1108,10 @@ static const uint32_t BRAND_COLORS[SignalMeter::LED_COUNT] = {
 }
 #endif
 
+#endif
+
+
+#ifdef ALLOWED_8
 EventDispatcher * set_application(int application, HT16K33Disp *display){
 	EventDispatcher *dispatcher;
 	char *title;	switch(application){
@@ -967,6 +1157,9 @@ EventDispatcher * set_application(int application, HT16K33Disp *display){
 
 	return dispatcher;
 }
+#endif
+
+#ifdef EVERYTHING_ON
 
 void purge_events(){
 	// Clear all pending encoder events
@@ -974,10 +1167,18 @@ void purge_events(){
 	      encoder_handlerA.pressed() || encoder_handlerA.long_pressed() ||
 	      encoder_handlerB.pressed() || encoder_handlerB.long_pressed());
 }
+#endif
 
+#ifdef ALLOWED_9
 void loop()
 {
-    display.scroll_string(FSTR("FLuXTeLE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
+	Serial.println("LOOP");
+
+#ifdef ALLOWED_10
+	display.scroll_string(FSTR("FLuXTeLE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
+#endif
+
+#ifdef EVERYTHING_ON	
 
 #ifdef ENABLE_BRANDING_MODE
     // BRANDING MODE EASTER EGG - Check if encoder A button is pressed during startup
@@ -987,7 +1188,13 @@ void loop()
     }
 #endif
 
+#endif
+
+#ifdef ALLOWED_11
     unsigned long time = millis();
+#endif
+
+#ifdef EVERYTHING_ON
     // panel_leds.begin(time, LEDHandler::STYLE_PLAIN | LEDHandler::STYLE_BLANKING, DEFAULT_PANEL_LEDS_SHOW_TIME, DEFAULT_PANEL_LEDS_BLANK_TIME);
 	
 	// ============================================================================
@@ -1328,8 +1535,24 @@ void loop()
 	
 	Serial.println("SimDTMF2 stations initialized in RINGBACK mode - should hear telephone ringback tones");
 #endif
-	set_application(APP_SIMRADIO, &display);
 
+#ifdef CONFIG_SIMTELCO_TEST
+	// Initialize SimDTMF2 test stations in RINGBACK mode
+	cw_station2_test1.begin(time + random(1000));
+	cw_station2_test1.set_station_state(AUDIBLE);
+	
+	cw_station2_test2.begin(time + random(2000));
+	cw_station2_test2.set_station_state(AUDIBLE);
+	
+	// Serial.println("SimDTMF2 stations initialized in RINGBACK mode - should hear telephone ringback tones");
+#endif
+#endif
+
+#ifdef ALLOWED_11
+	set_application(APP_SIMRADIO, &display);
+#endif
+
+#ifdef EVERYTHING_ON
 	while(true){
 		unsigned long time = millis();
 				// Update signal meter decay (capacitor-like discharge)
@@ -1454,4 +1677,8 @@ void loop()
 			dispatcher->dispatch_event(&display, ID_ENCODER_TUNING, pressed, long_pressed);
 		}
 	}
+#endif
+	while(true);
+
 }
+#endif

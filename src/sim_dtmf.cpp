@@ -1,25 +1,25 @@
-// Field Day Configuration - Must be defined before including sim_station.h
-#include "station_config.h"
+// // Field Day Configuration - Must be defined before including sim_station.h
+// #include "station_config.h"
 
-#include "vfo.h"
-#include "wavegen.h"
-#include "wave_gen_pool.h"
+// #include "vfo.h"
+// #include "wavegen.h"
+// #include "wave_gen_pool.h"
 #include "sim_dtmf.h"
-#include "signal_meter.h"
+// #include "signal_meter.h"
 
-#define WAIT_SECONDS2 4
+// #define WAIT_SECONDS2 4
 
-// Telephony frequency offset constants (authentic DTMF frequencies)
-const float SimDTMF::RINGBACK_FREQ_A = 440.0f;  // 440 Hz for ringback tone
-const float SimDTMF::RINGBACK_FREQ_C = 480.0f;  // 480 Hz for ringback tone  
-const float SimDTMF::BUSY_FREQ_A = 480.0f;      // 480 Hz for busy/reorder signals
-const float SimDTMF::BUSY_FREQ_C = 620.0f;      // 620 Hz for busy/reorder signals
-const float SimDTMF::DIAL_FREQ_A = 350.0f;      // 350 Hz for dial tone
-const float SimDTMF::DIAL_FREQ_C = 440.0f;      // 440 Hz for dial tone
+// // Telephony frequency offset constants (authentic DTMF frequencies)
+// const float SimDTMF::RINGBACK_FREQ_A = 440.0f;  // 440 Hz for ringback tone
+// const float SimDTMF::RINGBACK_FREQ_C = 480.0f;  // 480 Hz for ringback tone  
+// const float SimDTMF::BUSY_FREQ_A = 480.0f;      // 480 Hz for busy/reorder signals
+// const float SimDTMF::BUSY_FREQ_C = 620.0f;      // 620 Hz for busy/reorder signals
+// const float SimDTMF::DIAL_FREQ_A = 350.0f;      // 350 Hz for dial tone
+// const float SimDTMF::DIAL_FREQ_C = 440.0f;      // 440 Hz for dial tone
 
-// Legacy aliases for backward compatibility
-const float SimDTMF::RING_FREQ_A = SimDTMF::RINGBACK_FREQ_A;
-const float SimDTMF::RING_FREQ_C = SimDTMF::RINGBACK_FREQ_C;
+// // Legacy aliases for backward compatibility
+// const float SimDTMF::RING_FREQ_A = SimDTMF::RINGBACK_FREQ_A;
+// const float SimDTMF::RING_FREQ_C = SimDTMF::RINGBACK_FREQ_C;
 
 // DTMF frequency lookup tables (based on reference call_sequence.ino)
 const float SimDTMF::ROW_FREQUENCIES[4] = {
@@ -78,13 +78,13 @@ const int SimDTMF::DIGIT_TO_COL[16] = {
 
 // mode is expected to be a derivative of VFO
 SimDTMF::SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
-    : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _telco_type(type)
+    : SimDualTone(wave_gen_pool, fixed_freq) , _signal_meter(signal_meter) //, _telco_type(type)
 {
-    // Set frequency offsets based on telco type
-    // setFrequencyOffsetsForType();
+    // // Set frequency offsets based on telco type
+    // // setFrequencyOffsetsForType();
     
-    // Configure AsyncTelco timing based on telco type
-    _telco.configure_timing(type);
+    // // Configure AsyncTelco timing based on telco type
+    // _telco.configure_timing(type);
     
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
@@ -102,7 +102,7 @@ SimDTMF::SimDTMF(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fi
     // Generate initial random phone number
     generate_random_nanp_number();
     _digit_sequence = _generated_number;  // Point to generated number
-    Serial.println(_digit_sequence);
+    // Serial.println(_digit_sequence);
 }
 
 bool SimDTMF::begin(unsigned long time){
@@ -135,7 +135,7 @@ bool SimDTMF::begin(unsigned long time){
                 // or enable station manager pipelining
 
     // Start AsyncTelco ring cadence (repeating)
-    _telco.start_telco_transmission(true);
+    // _telco.start_telco_transmission(true);
     
     // from SimDTMF
     // Start AsyncDTMF sequence (matching SimTelco pattern with AsyncTelco)
@@ -201,47 +201,47 @@ bool SimDTMF::update(Mode *mode){
 // call periodically to keep realization dynamic
 // returns true if it should keep going
 bool SimDTMF::step(unsigned long time){
-    // // Handle ring cadence timing using AsyncTelco
-    // int telco_state = _telco.step_telco(time);
+    // // // Handle ring cadence timing using AsyncTelco
+    // // int telco_state = _telco.step_telco(time);
     
-    // switch(telco_state) {
-    //     case STEP_TELCO_TURN_ON:
-    //         _active = true;
-    //         realize();
-    //         send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
-    //         break;
+    // // switch(telco_state) {
+    // //     case STEP_TELCO_TURN_ON:
+    // //         _active = true;
+    // //         realize();
+    // //         send_carrier_charge_pulse(_signal_meter);  // Send charge pulse when carrier turns on
+    // //         break;
             
-    //     case STEP_TELCO_LEAVE_ON:
-    //         // Carrier remains on - send another charge pulse
-    //         send_carrier_charge_pulse(_signal_meter);
-    //         break;
+    // //     case STEP_TELCO_LEAVE_ON:
+    // //         // Carrier remains on - send another charge pulse
+    // //         send_carrier_charge_pulse(_signal_meter);
+    // //         break;
             
-    //     case STEP_TELCO_TURN_OFF:
-    //         _active = false;
-    //         realize();
-    //         // No charge pulse when carrier turns off
+    // //     case STEP_TELCO_TURN_OFF:
+    // //         _active = false;
+    // //         realize();
+    // //         // No charge pulse when carrier turns off
             
-    //         // Count completed cycles for frustration logic (when ring cycle ends)
-    //         _cycles_completed++;
-    //         if(_cycles_completed >= _cycles_until_qsy) {
-    //             // Operator gets frustrated, QSYs to new frequency
-    //             apply_operator_frustration_drift();
-    //             // Reset frustration counter for next QSY
-    //             _cycles_completed = 0;
-    //             _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
-    //         }
-    //         break;
+    // //         // Count completed cycles for frustration logic (when ring cycle ends)
+    // //         _cycles_completed++;
+    // //         if(_cycles_completed >= _cycles_until_qsy) {
+    // //             // Operator gets frustrated, QSYs to new frequency
+    // //             apply_operator_frustration_drift();
+    // //             // Reset frustration counter for next QSY
+    // //             _cycles_completed = 0;
+    // //             _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
+    // //         }
+    // //         break;
             
-    //     case STEP_TELCO_LEAVE_OFF:
-    //         // Carrier remains off - no action needed
-    //         break;
+    // //     case STEP_TELCO_LEAVE_OFF:
+    // //         // Carrier remains off - no action needed
+    // //         break;
             
-    //     case STEP_TELCO_CHANGE_FREQ:
-    //         // Continue transmitting but change frequency (for dual-tone systems)
-    //         // Ring uses single tone, but this prepares for other telephony sounds
-    //         send_carrier_charge_pulse(_signal_meter);
-    //         break;
-    // }
+    // //     case STEP_TELCO_CHANGE_FREQ:
+    // //         // Continue transmitting but change frequency (for dual-tone systems)
+    // //         // Ring uses single tone, but this prepares for other telephony sounds
+    // //         send_carrier_charge_pulse(_signal_meter);
+    // //         break;
+    // // }
 
     // from SimDTMF
     // Handle DTMF sequence timing using AsyncDTMF (matching SimTelco pattern)
@@ -447,50 +447,50 @@ void SimDTMF::generate_random_nanp_number() {
              suffix_1, suffix_2, suffix_3, suffix_4);
 }
 
-// REVISIT - never used
-// Set station into retry state (used when initialization fails)
-void SimDTMF::set_retry_state(unsigned long next_try_time) {
-    _in_wait_delay = true;
-    _next_cycle_time = next_try_time;
-}
-
-void SimDTMF::apply_operator_frustration_drift()
-{
-    // Move to a new frequency as if a whole new operator is on the air
-    // Realistic amateur radio operator frequency adjustment
-    // ±250 Hz - keep nearby within listening range
-    const float DRIFT_RANGE = 250.0f;
-
-    float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
-
-    // Apply drift to the shared frequency
-    _fixed_freq = _fixed_freq + drift;
-
-    // Immediately update the wave generator frequency
-    force_frequency_update();
-}
-
-// left out because it could be causing the bug
-// void SimDTMF::randomize() {
-//     // CRITICAL: Ensure proper cleanup when station gets moved by StationManager
-//     // This prevents wave generators from getting "stuck on" during station moves
-//     end();  // Release all wave generators before randomizing
-    
-//     // Generate new random phone number if using random generation
-//     if (_use_random_numbers) {
-//         generate_random_nanp_number();
-//         _digit_sequence = _generated_number;  // Update pointer to new number
-//         Serial.print("DTMF: Generated new random number: ");
-//         Serial.println(_generated_number);
-//     }
-    
-//     // Reset AsyncDTMF sequence
-//     _dtmf.reset_sequence();
-    
-//     // Reset wait delay state
-//     _in_wait_delay = false;
-//     _next_cycle_time = 0;
+// // REVISIT - never used
+// // Set station into retry state (used when initialization fails)
+// void SimDTMF::set_retry_state(unsigned long next_try_time) {
+//     _in_wait_delay = true;
+//     _next_cycle_time = next_try_time;
 // }
+
+// void SimDTMF::apply_operator_frustration_drift()
+// {
+//     // Move to a new frequency as if a whole new operator is on the air
+//     // Realistic amateur radio operator frequency adjustment
+//     // ±250 Hz - keep nearby within listening range
+//     const float DRIFT_RANGE = 250.0f;
+
+//     float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
+
+//     // Apply drift to the shared frequency
+//     _fixed_freq = _fixed_freq + drift;
+
+//     // Immediately update the wave generator frequency
+//     force_frequency_update();
+// }
+
+// // left out because it could be causing the bug
+// // void SimDTMF::randomize() {
+// //     // CRITICAL: Ensure proper cleanup when station gets moved by StationManager
+// //     // This prevents wave generators from getting "stuck on" during station moves
+// //     end();  // Release all wave generators before randomizing
+    
+// //     // Generate new random phone number if using random generation
+// //     if (_use_random_numbers) {
+// //         generate_random_nanp_number();
+// //         _digit_sequence = _generated_number;  // Update pointer to new number
+// //         Serial.print("DTMF: Generated new random number: ");
+// //         Serial.println(_generated_number);
+// //     }
+    
+// //     // Reset AsyncDTMF sequence
+// //     _dtmf.reset_sequence();
+    
+// //     // Reset wait delay state
+// //     _in_wait_delay = false;
+// //     _next_cycle_time = 0;
+// // }
 
 void SimDTMF::randomize()
 {
@@ -507,32 +507,32 @@ void SimDTMF::randomize()
     _next_cycle_time = 0;  // Will be set properly on next cycle
 }
 
-// Set frequency offsets based on telco type
-void SimDTMF::setFrequencyOffsetsForType() {
-    switch (_telco_type) {
-        case TELCO_RINGBACK:
-            _frequency_offset_a = RINGBACK_FREQ_A;  // 440 Hz
-            _frequency_offset_c = RINGBACK_FREQ_C;  // 480 Hz
-            break;
+// // Set frequency offsets based on telco type
+// void SimDTMF::setFrequencyOffsetsForType() {
+//     switch (_telco_type) {
+//         case TELCO_RINGBACK:
+//             _frequency_offset_a = RINGBACK_FREQ_A;  // 440 Hz
+//             _frequency_offset_c = RINGBACK_FREQ_C;  // 480 Hz
+//             break;
             
-        case TELCO_BUSY:
-        case TELCO_REORDER:
-            _frequency_offset_a = BUSY_FREQ_A;  // 480 Hz
-            _frequency_offset_c = BUSY_FREQ_C;  // 620 Hz
-            break;
+//         case TELCO_BUSY:
+//         case TELCO_REORDER:
+//             _frequency_offset_a = BUSY_FREQ_A;  // 480 Hz
+//             _frequency_offset_c = BUSY_FREQ_C;  // 620 Hz
+//             break;
             
-        case TELCO_DIALTONE:
-            _frequency_offset_a = DIAL_FREQ_A;  // 350 Hz
-            _frequency_offset_c = DIAL_FREQ_C;  // 440 Hz
-            break;
+//         case TELCO_DIALTONE:
+//             _frequency_offset_a = DIAL_FREQ_A;  // 350 Hz
+//             _frequency_offset_c = DIAL_FREQ_C;  // 440 Hz
+//             break;
             
-        default:
-            // Default to ringback frequencies as fallback
-            _frequency_offset_a = RINGBACK_FREQ_A;
-            _frequency_offset_c = RINGBACK_FREQ_C;
-            break;
-    }
-}
+//         default:
+//             // Default to ringback frequencies as fallback
+//             _frequency_offset_a = RINGBACK_FREQ_A;
+//             _frequency_offset_c = RINGBACK_FREQ_C;
+//             break;
+//     }
+// }
 
 // Override frequency offset methods to use stored values instead of macros
 float SimDTMF::getFrequencyOffsetA() const {
