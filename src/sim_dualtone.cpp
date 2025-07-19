@@ -51,15 +51,11 @@ void SimDualTone::common_frequency_update(Mode *mode)
     
     // Calculate raw frequency difference (used for signal meter - no BFO offset)
     float raw_frequency = _vfo_freq - _fixed_freq;
-    // Serial.println(raw_frequency);
 
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
     _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
     _frequency2 = raw_frequency + option_bfo_offset + getFrequencyOffsetC();
-    Serial.println("cfu=======");
-    Serial.println(_frequency);
-    Serial.println(_frequency2);
 }
 
 bool SimDualTone::check_frequency_bounds()
@@ -77,7 +73,6 @@ bool SimDualTone::check_frequency_bounds()
                 int realizer = get_realizer(i);
                 if(realizer != -1) {
                     WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer);
-                    Serial.println("Set both channels to silence");
                     wavegen->set_frequency(SILENT_FREQ, true);
                     wavegen->set_frequency(SILENT_FREQ, false);
                 }
@@ -203,20 +198,6 @@ void SimDualTone::force_frequency_update()
     //
     // NOTE: This assumes the station currently holds all needed wave generators.
 
-    Serial.println("ffu-----------");
-    
-    if(!_enabled){
-        Serial.println("ffu not enabled");
-    }
-
-    if(!has_all_realizers()){
-        Serial.println("ffu not all realizers");
-    }
-
-    if(!_active){
-        Serial.println("ffu not active");
-    }
-
     if(!_enabled || !has_all_realizers()) {
         return;  // Skip if not enabled or missing realizers
     }
@@ -230,26 +211,18 @@ void SimDualTone::force_frequency_update()
     float raw_frequency = _vfo_freq - _fixed_freq;
     _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
    
-    Serial.println(_frequency);
-    
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
-        Serial.println("ffu ");
-        Serial.println(_frequency);
         wavegen->set_frequency(_frequency);
     }
     
     float raw_frequency2 = _vfo_freq - _fixed_freq;
     _frequency2 = raw_frequency2 + option_bfo_offset + getFrequencyOffsetC();
 
-    Serial.println(_frequency2);
-    
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        Serial.println("ffu ");
-        Serial.println(_frequency2);
         wavegen_c->set_frequency(_frequency2);
     }
 }

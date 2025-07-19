@@ -375,7 +375,6 @@ void setup_buttons(){
 
 void setup(){
 	Serial.begin(115200);
-	Serial.println("SETUP");
 	randomizer.randomize();
 
 #ifdef USE_EEPROM_TABLES
@@ -522,8 +521,6 @@ void purge_events(){
 
 void loop()
 {
-	Serial.println("LOOP");
-
 	display.scroll_string(FSTR("FLuXTeLE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
 
 #ifdef ENABLE_BRANDING_MODE
