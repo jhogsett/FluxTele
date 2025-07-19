@@ -15,6 +15,7 @@ SimDualTone::SimDualTone(WaveGenPool *wave_gen_pool, float fixed_freq)
     _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
 
     // Initialize Wave Generators variables
+    _raw_frequency = 0.0;
     _frequency = 0.0;
     _frequency2 = 0.0;
     
@@ -50,12 +51,12 @@ void SimDualTone::common_frequency_update(Mode *mode)
     _vfo_freq = float(vfo->_frequency) + (vfo->_sub_frequency / 10.0);
     
     // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    float raw_frequency = _vfo_freq - _fixed_freq;
+    _raw_frequency = _vfo_freq - _fixed_freq;
 
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
-    _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
-    _frequency2 = raw_frequency + option_bfo_offset + getFrequencyOffsetC();
+    _frequency = _raw_frequency + option_bfo_offset + getFrequencyOffsetA();
+    _frequency2 = _raw_frequency + option_bfo_offset + getFrequencyOffsetC();
 }
 
 bool SimDualTone::check_frequency_bounds()

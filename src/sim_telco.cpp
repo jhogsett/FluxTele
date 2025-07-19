@@ -222,21 +222,26 @@ void SimTelco::set_retry_state(unsigned long next_try_time) {
 
 void SimTelco::randomize_station()
 {
-#ifdef ENABLE_FREQ_DRIFT
-    // Move to a new frequency as if a whole new operator is on the air
-    // Realistic amateur radio operator frequency adjustment
-    // ±250 Hz - keep nearby within listening range
-    const float DRIFT_RANGE = 500.0f;
-    const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
+    // if currently tuned directly to this station don't move it
+    bool skip_frequency_drift = false;
+    if(_raw_frequency == 0.0)
+        skip_frequency_drift = true;
 
-    float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
+    if(!skip_frequency_drift){
+        // Move to a new frequency as if a whole new operator is on the air
+        // Realistic amateur radio operator frequency adjustment
+        // ±250 Hz - keep nearby within listening range
+        const float DRIFT_RANGE = 500.0f;
+        const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
 
-    // Apply drift to the shared frequency
-    float new_freq = _fixed_freq + drift;
+        float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
 
-    // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
-    _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
-#endif
+        // Apply drift to the shared frequency
+        float new_freq = _fixed_freq + drift;
+
+        // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
+        _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
+    }
 
     // REALISM: Randomly switch to a different TelcoType (different telephone system)
     // This simulates different operators or telephone exchanges coming on the air
@@ -252,11 +257,11 @@ void SimTelco::randomize_station()
     // Reset frustration counter with new type-specific cycles
     _cycles_until_qsy = calculateDriftCycles(_telco_type);
     
-#ifdef ENABLE_FREQ_DRIFT
-    // Immediately update the wave generator frequency
-    force_frequency_update();
-#endif
-    
+    if(!skip_frequency_drift){
+        // Immediately update the wave generator frequency
+        force_frequency_update();
+    }
+
     // REALISM: Add 3-5 second delay before operator starts transmitting again
     // This simulates the time needed for retuning and getting back on the air
     unsigned long restart_delay = 3000 + random(2000);  // 3-5 seconds

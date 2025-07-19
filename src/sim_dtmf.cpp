@@ -342,19 +342,26 @@ void SimDTMF::generate_random_nanp_number() {
 
 void SimDTMF::randomize_station()
 {
-    // Move to a new frequency as if a whole new operator is on the air
-    // Realistic amateur radio operator frequency adjustment
-    // ±250 Hz - keep nearby within listening range
-    const float DRIFT_RANGE = 250.0f;
-    const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
+    // if currently tuned directly to this station don't move it
+    bool skip_frequency_drift = false;
+    if(_raw_frequency == 0.0)
+        skip_frequency_drift = true;
 
-    float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
+    if(!skip_frequency_drift){
+        // Move to a new frequency as if a whole new operator is on the air
+        // Realistic amateur radio operator frequency adjustment
+        // ±250 Hz - keep nearby within listening range
+        const float DRIFT_RANGE = 250.0f;
+        const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
 
-    // Apply drift to the shared frequency
-    float new_freq = _fixed_freq + drift;
-    
-    // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
-    _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
+        float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
+
+        // Apply drift to the shared frequency
+        float new_freq = _fixed_freq + drift;
+        
+        // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
+        _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
+    }
 
     // Generate new random phone number if using random generation
     if (_use_random_numbers) {
@@ -365,9 +372,11 @@ void SimDTMF::randomize_station()
     // Reset AsyncDTMF sequence
     _dtmf.reset_sequence();
 
-    // Immediately update the wave generator frequency
-    force_frequency_update();
-    
+    if(!skip_frequency_drift){
+        // Immediately update the wave generator frequency
+        force_frequency_update();
+    }
+
     // REALISM: Add 3-5 second delay before operator starts transmitting again
     // This simulates the time needed for retuning and getting back on the air
     unsigned long restart_delay = 3000 + random(2000);  // 3-5 seconds
