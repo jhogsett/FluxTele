@@ -4,13 +4,6 @@
 // FluxTele Telephony Configuration
 // Choose ONE configuration mode by uncommenting it
 
-// ===== FLUXTELE TELEPHONY CONFIGURATIONS =====
-// #define CONFIG_TELEPHONE_EXCHANGE  // Default: Multi-line telephone exchange with DTMF dialing (TODO: Implement)
-// #define CONFIG_DTMF_DIALER        // DTMF touch-tone dialing demonstration
-// #define CONFIG_RING_CADENCE       // Various telephone ringing patterns
-// #define CONFIG_BUSY_SIGNAL        // Standard telephone busy signals
-// #define CONFIG_MODEM_SOUNDS       // Dial-up modem handshake simulation
-
 // ===== FLUXTELE PRIMARY CONFIGURATION =====  
 // #define CONFIG_MIXED_STATIONS    // Primary FluxTele config: SimExchangeBad + CW stations for telephony testing
 // #define CONFIG_DEV_LOW_RAM       // Development: Minimal RAM usage for development work
@@ -32,9 +25,9 @@
 // #define CONFIG_FOUR_JAMMER      // Four Jammer stations for interference testing
 // #define CONFIG_PAGER2_TEST      // Single dual-tone pager station for testing dual wave generators
 // #define CONFIG_MINIMAL_CW       // Single CW station (minimal memory) - CONFIRMED: Single station causes restarts
-#define CONFIG_SIMTELCO_TEST    // Single SimTelco station for testing duplicate class functionality
-// #define CONFIG_DTMF_TEST        // Single DTMF station for testing digit sequence playback
-// #define CONFIG_DTMF2_TEST       // Two SimDTMF2 stations in RINGBACK mode for parallel development testing
+// #define CONFIG_SIMDTMF    // Single SimTelco station for testing duplicate class functionality
+// #define CONFIG_SIMTELCO    // Single SimTelco station for testing duplicate class functionality
+#define CONFIG_ALLTELCO    // Single SimTelco station for testing duplicate class functionality
 
 // ===== LISTENING PLEASURE CONFIGURATION =====
 // #define CONFIG_CW_CLUSTER       // Four CW stations clustered in 40m for listening pleasure
@@ -166,21 +159,9 @@
     // All other stations disabled for focused testing
 #endif
 
-#ifdef CONFIG_SIMTELCO_TEST
+#ifdef CONFIG_SIMDTMF
     // Test: Single SimTelco station for testing duplicate class functionality
-    #define ENABLE_SIMTELCO_TEST
-    // All other stations disabled for focused testing
-#endif
-
-#ifdef CONFIG_DTMF_TEST
-    // Test: Single DTMF station for testing digit sequence playback
-    #define ENABLE_DTMF_TEST
-    // All other stations disabled for focused testing
-#endif
-
-#ifdef CONFIG_DTMF2_TEST
-    // Test: Two SimDTMF2 stations in RINGBACK mode for parallel development testing
-    #define ENABLE_DTMF2_TEST
+    #define ENABLE_SIMDTMF
     // All other stations disabled for focused testing
 #endif
 

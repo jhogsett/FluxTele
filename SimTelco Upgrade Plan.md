@@ -31,7 +31,7 @@ Important Note: The changes need to be tested on the device after each step, and
 
 1. Add the _type_ to SimTelco (Ring, Busy, Reorder)
     - There may be examples of similar in _AsyncTelco_
-2. Add the new parameter to the existing CONFIG_SIMTELCO_TEST configuration
+2. Add the new parameter to the existing CONFIG_SIMDTMF configuration
 3. Test on the device
 
 4. Add to the class the ability to retrieve the necessary two frequency offsets based on the type
@@ -41,5 +41,5 @@ Important Note: The changes need to be tested on the device after each step, and
 7. Replace the use of the two macros GENERATOR_A_TEST_OFFSET and GENERATOR_C_TEST_OFFSET with the use of the two new floats in both places they are used
 8. Test on the device
 
-9. Change the type in the CONFIG_SIMTELCO_TEST config from "Ring" to "Busy"
+9. Change the type in the CONFIG_SIMDTMF config from "Ring" to "Busy"
 10. Test on the device

@@ -50,7 +50,7 @@
 
 #endif
 
-#ifdef ENABLE_SIMTELCO_TEST
+#ifdef ENABLE_SIMDTMF
 #include "sim_dtmf.h"
 #endif
 
@@ -104,6 +104,10 @@
 #endif
 
 #include "signal_meter.h"
+
+#include "telco_types.h"
+#include "sim_telco.h"
+#include "sim_dtmf.h"
 
 // ============================================================================
 // BRANDING MODE FOR PRODUCT PHOTOGRAPHY
@@ -497,7 +501,7 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 };
 #endif
 
-#ifdef CONFIG_SIMTELCO_TEST
+#ifdef CONFIG_SIMDTMF
 
 // TEST: Single SimTelco station for testing duplicate class functionality
 SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
@@ -517,37 +521,70 @@ Realization *realizations[2] = {  // Only 1 entry for test config
 };
 #endif
 
-#ifdef CONFIG_DTMF_TEST
-// TEST: Two DTMF stations for testing digit sequence playback (meets two-station minimum)
-SimDTMF dtmf_station1(&wave_gen_pool, &signal_meter, 55500000.0);  // Random NANP phone numbers
-SimDTMF dtmf_station2(&wave_gen_pool, &signal_meter, 55505000.0, "15556781234");  // Fixed test phone number
+#ifdef CONFIG_SIMTELCO
 
-SimDualTone *station_pool[2] = {
-    &dtmf_station1,
-    &dtmf_station2
+// TEST: Single SimTelco station for testing duplicate class functionality
+SimTelco cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.5 MHz
+
+SimTelco cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.501 MHz
+
+SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
+    &cw_station2_test1
+	,
+    &cw_station2_test2
 };
 
-Realization *realizations[2] = {
-	&dtmf_station1,
-	&dtmf_station2
+Realization *realizations[2] = {  // Only 1 entry for test config
+	&cw_station2_test1
+	,
+	&cw_station2_test2
+};
+#endif
+
+#ifdef CONFIG_ALLTELCO
+
+SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
+SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55505000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
+
+SimTelco cw_station2_test3(&wave_gen_pool, &signal_meter, 555100000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.5 MHz
+SimTelco cw_station2_test4(&wave_gen_pool, &signal_meter, 55515000.0, TelcoType::TELCO_DIALTONE);  // Test station at 55.501 MHz
+
+SimTelco cw_station2_test5(&wave_gen_pool, &signal_meter, 55520000.0, TelcoType::TELCO_RINGBACK);  // Test station at 55.5 MHz
+SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter, 55525000.0, TelcoType::TELCO_RINGBACK);  // Test station at 55.501 MHz
+
+SimTelco cw_station2_test7(&wave_gen_pool, &signal_meter, 55530000.0, TelcoType::TELCO_BUSY);  // Test station at 55.5 MHz
+SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter, 55535000.0, TelcoType::TELCO_BUSY);  // Test station at 55.501 MHz
+
+SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter, 55540000.0, TelcoType::TELCO_REORDER);  // Test station at 55.5 MHz
+SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter, 55545000.0, TelcoType::TELCO_REORDER);  // Test station at 55.501 MHz
+
+SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
+    &cw_station2_test1,
+    &cw_station2_test2,
+    &cw_station2_test3,
+    &cw_station2_test4,
+    &cw_station2_test5,
+    &cw_station2_test6,
+    &cw_station2_test7,
+    &cw_station2_test8,
+    &cw_station2_test9,
+    &cw_station2_test10
+};
+
+Realization *realizations[10] = {  // Only 1 entry for test config
+    &cw_station2_test1,
+    &cw_station2_test2,
+    &cw_station2_test3,
+    &cw_station2_test4,
+    &cw_station2_test5,
+    &cw_station2_test6,
+    &cw_station2_test7,
+    &cw_station2_test8,
+    &cw_station2_test9,
+    &cw_station2_test10
 };
 #endif
 
-#ifdef CONFIG_DTMF2_TEST
-// TEST: Two SimDTMF2 stations in RINGBACK mode for parallel development testing
-SimDTMF2 dtmf2_station1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_RINGBACK);  // Test station 1 in RINGBACK mode
-SimDTMF2 dtmf2_station2(&wave_gen_pool, &signal_meter, 55505000.0, TELCO_RINGBACK);  // Test station 2 in RINGBACK mode
-
-SimDualTone *station_pool[2] = {
-    &dtmf2_station1,
-    &dtmf2_station2
-};
-
-Realization *realizations[2] = {
-	&dtmf2_station1,
-	&dtmf2_station2
-};
-#endif
 
 #ifdef CONFIG_DEV_LOW_RAM
 // DEVELOPMENT: Low RAM configuration - only essential stations for development
@@ -659,12 +696,10 @@ Realization *realizations[1] = {
 // Realization status array - sized based on configuration
 #ifdef CONFIG_MINIMAL_CW
 bool realization_stats[1] = {false};
-#elif defined(CONFIG_SIMTELCO_TEST)
+#elif defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 bool realization_stats[2] = {false, false};  // Single SimTelco test station
-#elif defined(CONFIG_DTMF_TEST)
-bool realization_stats[2] = {false, false};  // Two DTMF test stations (meets two-station minimum)
-#elif defined(CONFIG_DTMF2_TEST)
-bool realization_stats[2] = {false, false};  // Two SimDTMF2 test stations in RINGBACK mode
+#elif defined(CONFIG_ALLTELCO)
+bool realization_stats[10] = {false, false, false, false, false, false, false, false, false, false};  // Single SimTelco test station
 #elif defined(CONFIG_TEST_PERFORMANCE)
 bool realization_stats[1] = {false};  // Single test station
 #elif defined(CONFIG_PAGER2_TEST)
@@ -687,12 +722,10 @@ bool realization_stats[4] = {false, false, false, false};
 
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
-#elif defined(CONFIG_SIMTELCO_TEST)
+#elif defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
-#elif defined(CONFIG_DTMF_TEST)
-RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
-#elif defined(CONFIG_DTMF2_TEST)
-RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
+#elif defined(CONFIG_ALLTELCO)
+RealizationPool realization_pool(realizations, realization_stats, 10);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_TEST_PERFORMANCE)
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_PAGER2_TEST)
@@ -720,12 +753,10 @@ RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CR
 
 #ifdef CONFIG_MINIMAL_CW
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
-#elif defined(CONFIG_SIMTELCO_TEST)
+#elif defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
-#elif defined(CONFIG_DTMF_TEST)
-StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
-#elif defined(CONFIG_DTMF2_TEST)
-StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
+#elif defined(CONFIG_ALLTELCO)
+StationManager station_manager(realizations, 10);  // Use optimized constructor with shared array
 #elif defined(CONFIG_TEST_PERFORMANCE)
 StationManager station_manager(realizations, 1);  // Use optimized constructor with shared array
 #elif defined(CONFIG_PAGER2_TEST)
@@ -884,13 +915,6 @@ void setup(){
 	AD4.setMode(MD_AD9833::MODE_SINE);
 
 	// Initialize StationManager with dynamic pipelining
-#if defined(CONFIG_PAGER2_TEST) || defined(CONFIG_DTMF_TEST)
-	// For simple single-station testing, disable dynamic pipelining
-	// This ensures the station starts immediately without requiring tuning knob interaction
-	station_manager.enableDynamicPipelining(false);
-#else
-#endif
-
 	station_manager.enableDynamicPipelining(true);
 	station_manager.setupPipeline(55500000); // Start with VFO A frequency (55.5 MHz)
 	
@@ -1345,39 +1369,34 @@ void loop()
 	pager2_test.debug_test_dual_generator_acquisition();
 #endif
 
-#ifdef CONFIG_DTMF_TEST
-	// Initialize DTMF test stations for digit sequence playback
-	dtmf_station1.begin(time + random(1000));
-	dtmf_station1.set_station_state(AUDIBLE);
-	
-	dtmf_station2.begin(time + random(2000));
-	dtmf_station2.set_station_state(AUDIBLE);
-	
-	Serial.println("DTMF stations initialized - should hear phone number sequences");
-	
-	// Debug output to show the phone numbers being dialed
-	Serial.println("=== DTMF Station Phone Numbers ===");
-	dtmf_station1.debug_print_phone_number();
-	dtmf_station2.debug_print_phone_number();
-	Serial.println("==================================");
-#endif
-
-#ifdef CONFIG_DTMF2_TEST
-	// Initialize SimDTMF2 test stations in RINGBACK mode
-	dtmf2_station1.begin(time + random(1000));
-	dtmf2_station1.set_station_state(AUDIBLE);
-	
-	dtmf2_station2.begin(time + random(2000));
-	dtmf2_station2.set_station_state(AUDIBLE);
-	
-	Serial.println("SimDTMF2 stations initialized in RINGBACK mode - should hear telephone ringback tones");
-#endif
-
-#ifdef CONFIG_SIMTELCO_TEST
+#if defined(CONFIG_SIMDTMF) || defined(CONFIG_SIMTELCO)
 	cw_station2_test1.begin(time + random(1000));
 	cw_station2_test1.set_station_state(AUDIBLE);
 	cw_station2_test2.begin(time + random(2000));
 	cw_station2_test2.set_station_state(AUDIBLE);
+#endif
+
+#if defined(CONFIG_ALLTELCO)
+	cw_station2_test1.begin(time + random(1000));
+	cw_station2_test1.set_station_state(AUDIBLE);
+	cw_station2_test2.begin(time + random(2000));
+	cw_station2_test2.set_station_state(AUDIBLE);
+	cw_station2_test3.begin(time + random(3000));
+	cw_station2_test3.set_station_state(AUDIBLE);
+	cw_station2_test4.begin(time + random(4000));
+	cw_station2_test4.set_station_state(AUDIBLE);
+	cw_station2_test5.begin(time + random(5000));
+	cw_station2_test5.set_station_state(AUDIBLE);
+	cw_station2_test6.begin(time + random(6000));
+	cw_station2_test6.set_station_state(AUDIBLE);
+	cw_station2_test7.begin(time + random(7000));
+	cw_station2_test7.set_station_state(AUDIBLE);
+	cw_station2_test8.begin(time + random(8000));
+	cw_station2_test8.set_station_state(AUDIBLE);
+	cw_station2_test9.begin(time + random(9000));
+	cw_station2_test9.set_station_state(AUDIBLE);
+	cw_station2_test10.begin(time + random(10000));
+	cw_station2_test10.set_station_state(AUDIBLE);
 #endif
 
 	set_application(APP_SIMRADIO, &display);
