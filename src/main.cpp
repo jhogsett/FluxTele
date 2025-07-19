@@ -190,9 +190,8 @@ SignalMeter signal_meter;
 #ifdef CONFIG_SIMDTMF
 
 // TEST: Single SimTelco station for testing duplicate class functionality
-SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000L, TELCO_DIALTONE);
-
-SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000L, TELCO_DIALTONE);
+SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 555123400L);
+SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 867530900L);
 
 SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1
