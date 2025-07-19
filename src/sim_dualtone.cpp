@@ -63,8 +63,6 @@ bool SimDualTone::check_frequency_bounds()
     // Check frequency bounds for all enabled generators
     bool any_in_bounds = false;
 
-    // REVISIT it shouldn't be capable of turning just one off (breaks realism)
-
     if(_frequency > MAX_AUDIBLE_FREQ || _frequency < MIN_AUDIBLE_FREQ){
         if(_enabled){
             _enabled = false;
