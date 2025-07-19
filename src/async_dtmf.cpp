@@ -117,6 +117,7 @@ unsigned long AsyncDTMF::calculateDigitGap(int current_position) {
     
     // Fast dialing for repeated digits (like "00", "555", "99")
     if (current_position > 0 && _digit_sequence && 
+        current_position < _sequence_length && previous_position >= 0 &&
         _digit_sequence[current_position] == _digit_sequence[previous_position]) {
         return DTMF_DIGIT_GAP_MIN + random(100);  // 200-300ms for repeated digits
     }
