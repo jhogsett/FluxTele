@@ -10,7 +10,6 @@
 #define LAST_PANEL_LED 10
 #define WHITE_PANEL_LED 9   // Pin 9: White panel LED
 #define BLUE_PANEL_LED 10   // Pin 10: Blue panel LED
-#define PANEL_LOCK_LED_FULL_BRIGHTNESS 127
 
 // ============================================================================
 // DEVICE VARIANT CONFIGURATION
