@@ -10,7 +10,22 @@
 #include "sim_telco.h"
 #include "signal_meter.h"
 
-#define DRIFT_COUNT 4
+// Per-TelcoType drift settings for realistic operator behavior
+// Minimum cycles before station moves (base persistence)
+const int DRIFT_MIN_CYCLES[4] = {
+    4,  // TELCO_RINGBACK - ringback signals are moderately persistent
+    8,  // TELCO_BUSY - busy signals are moderately persistent  
+    12,  // TELCO_REORDER - reorder signals are moderately persistent
+    1   // TELCO_DIALTONE - dial tones are moderately persistent
+};
+
+// Additional random cycles beyond minimum (creates range)
+const int DRIFT_ADDITIONAL_CYCLES[4] = {
+    4,  // TELCO_RINGBACK - range: 4-8 cycles (same as before)
+    8,  // TELCO_BUSY - range: 4-8 cycles (same as before)
+    12,  // TELCO_REORDER - range: 4-8 cycles (same as before)  
+    1   // TELCO_DIALTONE - range: 4-8 cycles (same as before)
+};
 
 // Telephony frequency offset constants (authentic DTMF frequencies)
 const float SimTelco::RINGBACK_FREQ_A = 440.0f;  // 440 Hz for ringback tone
@@ -24,6 +39,15 @@ const float SimTelco::DIAL_FREQ_C = 440.0f;      // 440 Hz for dial tone
 const float SimTelco::RING_FREQ_A = SimTelco::RINGBACK_FREQ_A;
 const float SimTelco::RING_FREQ_C = SimTelco::RINGBACK_FREQ_C;
 
+// Helper function to calculate drift cycles based on TelcoType
+int calculateDriftCycles(TelcoType type) {
+    int type_index = (int)type;  // Convert enum to array index
+    if (type_index >= 0 && type_index < 4) {
+        return DRIFT_MIN_CYCLES[type_index] + random(DRIFT_ADDITIONAL_CYCLES[type_index]);
+    }
+    return 4 + random(4);  // Fallback to original behavior
+}
+
 // mode is expected to be a derivative of VFO
 SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
     : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _telco_type(type)
@@ -36,7 +60,7 @@ SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float 
     
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
-    _cycles_until_qsy = DRIFT_COUNT + (random(DRIFT_COUNT));   // 3-8 cycles before frustration (realistic)
+    _cycles_until_qsy = calculateDriftCycles(type);  // Per-type drift cycles (realistic telephony behavior)
 
     // Initialize timing state
     _in_wait_delay = false;
@@ -160,7 +184,7 @@ bool SimTelco::step(unsigned long time){
                 apply_operator_frustration_drift();
                 // Reset frustration counter for next QSY
                 _cycles_completed = 0;
-                _cycles_until_qsy = DRIFT_COUNT + (random(DRIFT_COUNT));   // 3-8 cycles before next frustration
+                _cycles_until_qsy = calculateDriftCycles(_telco_type);  // Per-type drift cycles
             }
             break;
             
@@ -225,7 +249,7 @@ void SimTelco::randomize()
     _cycles_completed = 0;
     
     // Set a new random frustration threshold (cycles until QSY)
-    _cycles_until_qsy = random(3, 11);  // 3-10 cycles before getting frustrated
+    _cycles_until_qsy = calculateDriftCycles(_telco_type);  // Per-type drift cycles
     
     // Reset timing state
     _in_wait_delay = false;

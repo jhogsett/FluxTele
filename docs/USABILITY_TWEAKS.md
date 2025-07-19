@@ -66,6 +66,57 @@ _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
 
 ---
 
+## Tweak #3: Per-TelcoType Station Persistence Settings  
+
+**Date**: July 19, 2025  
+**Problem**: All SimTelco stations used the same hardcoded drift timing (`DRIFT_COUNT = 4`), creating uniform behavior across different telephony signal types. This made all stations feel the same rather than reflecting realistic operator behavior differences between signal types.
+
+**Root Cause**: The single `DRIFT_COUNT` constant was used for all TelcoType stations with the formula `DRIFT_COUNT + random(DRIFT_COUNT)` (4-8 cycles). Different telephony signals should have different persistence characteristics - for example, busy signals might change more frequently than dial tones in realistic usage.
+
+**Solution**: 
+1. Replaced single `DRIFT_COUNT` with per-TelcoType arrays in `src/sim_telco.cpp`
+2. Split into separate minimum and additional range settings for better control
+3. Added helper function to calculate drift cycles based on TelcoType:
+```cpp
+// Per-TelcoType drift settings for realistic operator behavior
+const int DRIFT_MIN_CYCLES[4] = {
+    4,  // TELCO_RINGBACK - ringback signals are moderately persistent
+    4,  // TELCO_BUSY - busy signals are moderately persistent  
+    4,  // TELCO_REORDER - reorder signals are moderately persistent
+    4   // TELCO_DIALTONE - dial tones are moderately persistent
+};
+
+const int DRIFT_ADDITIONAL_CYCLES[4] = {
+    4,  // TELCO_RINGBACK - range: 4-8 cycles (same as before)
+    4,  // TELCO_BUSY - range: 4-8 cycles (same as before)
+    4,  // TELCO_REORDER - range: 4-8 cycles (same as before)  
+    4   // TELCO_DIALTONE - range: 4-8 cycles (same as before)
+};
+
+int calculateDriftCycles(TelcoType type) {
+    int type_index = (int)type;
+    if (type_index >= 0 && type_index < 4) {
+        return DRIFT_MIN_CYCLES[type_index] + random(DRIFT_ADDITIONAL_CYCLES[type_index]);
+    }
+    return 4 + random(4);  // Fallback
+}
+```
+
+**Expected Impact**:
+- Foundation for realistic per-signal persistence behavior
+- Currently maintains same 4-8 cycle range for all types (no behavior change)
+- Enables future fine-tuning of individual signal characteristics
+- More maintainable and configurable drift logic
+
+**Testing Notes**:
+- Verify that all TelcoType stations still drift at same rate as before
+- Test that different signal types can be assigned different values
+- Ensure no regression in existing station behavior
+- Validate array bounds checking works correctly
+- Future: Adjust individual values per signal type for optimal listening experience
+
+---
+
 ## Future Tweak Ideas
 
 **Potential Areas for Improvement** (to be tested and documented as implemented):
