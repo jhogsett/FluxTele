@@ -1,25 +1,39 @@
+
 #include "station_config.h"
 
 #include <Arduino.h>
+
 #include <Wire.h>
+
 #include <MD_AD9833.h>
+
 #include <Encoder.h>
 #include <Adafruit_NeoPixel.h>
 
 #include "displays.h"
+
 #include "hardware.h"
+
+
 #include "leds.h"
+
 #include "saved_data.h"
 #include "seeding.h"
+
 #include "utils.h"
+
 #include "signal_meter.h"
+
 #include "station_config.h"
+
 #include "station_manager.h"
 
 #include "encoder_handler.h"
 
 #include "vfo.h"
+
 #include "vfo_tuner.h"
+
 #include "event_dispatcher.h"
 
 #include "contrast.h"
@@ -33,11 +47,13 @@
 
 #ifdef ENABLE_MORSE_STATION
 #include "sim_station.h"
+
 #endif
 
 #ifdef ENABLE_SIMTELCO_TEST
-#include "sim_telco2.h"
+#include "sim_dtmf.h"
 #endif
+
 
 #ifdef ENABLE_DTMF_TEST
 #include "sim_dtmf.h"
@@ -82,24 +98,22 @@
 
 #include "wave_gen_pool.h"
 
+
 #ifdef USE_EEPROM_TABLES
 #include "eeprom_tables.h"
 #endif
+
+#include "signal_meter.h"
 
 // ============================================================================
 // BRANDING MODE FOR PRODUCT PHOTOGRAPHY
 // Comment out this #define to disable branding mode and save Flash memory
 // ============================================================================
-// #define ENABLE_BRANDING_MODE  // OPTIMIZATION: Disabled by default to save Flash
+#define ENABLE_BRANDING_MODE  // OPTIMIZATION: Disabled by default to save Flash
 
 // Create an ledStrip object and specify the pin it will use.
 // Now using Adafruit NeoPixel for both platforms
 // PololuLedStrip<12> ledStrip;
-
-#define LED_COUNT 7
-
-
-
 
 #define CLKA 3
 #define DTA 2
@@ -116,12 +130,12 @@
 #define DISPLAY_SHOW_TIME 800  // Restored to original value
 // scroll the display every 90ms for ease of reading
 #define DISPLAY_SCROLL_TIME 70
+
 // scroll flipped options every 100ms
 #define OPTION_FLIP_SCROLL_TIME 100
 
 EncoderHandler encoder_handlerA(0, CLKA, DTA, SWA, PULSES_PER_DETENT);
 EncoderHandler encoder_handlerB(1, CLKB, DTB, SWB, PULSES_PER_DETENT);
-
 
 // Pins for SPI comm with the AD9833 IC
 const byte PIN_DATA = 11;  ///< SPI Data pin number
@@ -484,9 +498,11 @@ Realization *realizations[1] = {  // Only 1 entry for minimal config
 #endif
 
 #ifdef CONFIG_SIMTELCO_TEST
+
 // TEST: Single SimTelco station for testing duplicate class functionality
-SimTelco2 cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
-SimTelco2 cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
+SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000.0, TELCO_DIALTONE);  // Test station at 55.5 MHz
+
+SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000.0, TELCO_DIALTONE);  // Test station at 55.501 MHz
 
 SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1
@@ -667,6 +683,8 @@ bool realization_stats[3] = {false, false, false};  // 3 stations for MIXED (CW1
 bool realization_stats[4] = {false, false, false, false};
 #endif
 
+// bool realization_stats[2] = {false, false};  // Single SimTelco test station
+
 #ifdef CONFIG_MINIMAL_CW
 RealizationPool realization_pool(realizations, realization_stats, 1);  // *** CRITICAL: Count must match arrays above! ***
 #elif defined(CONFIG_SIMTELCO_TEST)
@@ -692,6 +710,8 @@ RealizationPool realization_pool(realizations, realization_stats, 3);  // *** CR
 #else
 RealizationPool realization_pool(realizations, realization_stats, 4);  // *** CRITICAL: Count must match arrays above! ***
 #endif
+
+// RealizationPool realization_pool(realizations, realization_stats, 2);  // *** CRITICAL: Count must match arrays above! ***
 
 // ============================================================================
 // STATION MANAGER - Initialize with shared realizations array (FluxTune optimization)
@@ -723,6 +743,8 @@ StationManager station_manager(realizations, 3);  // Use optimized constructor w
 #else
 StationManager station_manager(realizations, 4);  // Use optimized constructor with shared array
 #endif
+
+// StationManager station_manager(realizations, 2);  // Use optimized constructor with shared array
 
 // Timer for periodic exchange signal randomization (authentic telephony behavior)
 unsigned long last_exchange_randomization = 0;
@@ -809,8 +831,20 @@ void setup_buttons(){
 	// }
 }
 
+// void setup(){
+// 	Serial.begin(115200);
+// 	Serial.println("SETUP");
+// }
+
+// void loop(){
+// 	Serial.println("LOOP");
+// 	while(true);
+// }
+
+
 void setup(){
 	Serial.begin(115200);
+	Serial.println("SETUP");
 	randomizer.randomize();
 
 #ifdef USE_EEPROM_TABLES
@@ -825,7 +859,9 @@ void setup(){
 	load_save_data();
 
 	setup_leds();
+
 	setup_display();
+
 	setup_signal_meter();
 
 	AD1.begin();
@@ -853,12 +889,14 @@ void setup(){
 	// This ensures the station starts immediately without requiring tuning knob interaction
 	station_manager.enableDynamicPipelining(false);
 #else
+#endif
+
 	station_manager.enableDynamicPipelining(true);
 	station_manager.setupPipeline(55500000); // Start with VFO A frequency (55.5 MHz)
-#endif
 	
 	// DEBUG: Check for station pool array bounds bug
 	debug_station_pool_state();
+
 }
 
 #ifdef ENABLE_BRANDING_MODE
@@ -868,34 +906,53 @@ void setup(){
 // Sets signal meter to full strength and lights panel LEDs at max brightness
 // ============================================================================
 void activate_branding_mode() {
-    // Keep display showing "FluxTune" from previous code - perfect for branding photos!
+	Adafruit_NeoPixel* led_strip = nullptr;
+
+	// Keep display showing "FluxTune" from previous code - perfect for branding photos!
       // Directly set signal meter LEDs to 4x brightness (bypass dynamic system)
-	rgb_color full_colors[LED_COUNT] = 
+	// rgb_color full_colors[LED_COUNT] = 
 #ifdef DEVICE_VARIANT_RED_DISPLAY
-    {
-      { 60, 0, 0 },   // 4x brightness for all LEDs (was 15)
-      { 60, 30, 0 }, 
-      { 60, 60, 0 }, 
-      { 0, 60, 0 }, 
-      { 0, 60, 60 }, 
-      { 0, 0, 60 }, 
-      { 30, 0, 60 }     // Red at the end
-    };
+// Color values for NeoPixel (red, green, blue ordering)
+static const uint32_t BRAND_COLORS[SignalMeter::LED_COUNT] = {
+    0x0F0000,   // Red
+    0x0F0700,   // Orange
+    0x0F0F00,   // Yellow
+    0x000F00,   // Green
+    0x000F0F,   // Cyan
+    0x00000F,   // Blue
+    0x07000F    // Purple
+};
 #else
-    {
-      { 0, 60, 0 },   // 4x brightness for all LEDs (was 15)
-      { 0, 60, 0 }, 
-      { 0, 60, 0 }, 
-      { 0, 60, 0 }, 
-      { 60, 60, 0 }, 
-      { 60, 60, 0 }, 
-      { 60, 0, 6 }     // Red at the end
-    };
+// Color values for NeoPixel (red, green, blue ordering)
+static const uint32_t BRAND_COLORS[SignalMeter::LED_COUNT] = {
+    0x000F00,   // Green
+    0x000F00,   // Green  
+    0x000F00,   // Green
+    0x000F00,   // Green
+    0x0F0F00,   // Yellow
+    0x0F0F00,   // Yellow
+    0x0F0000,    // Red
+};
 #endif
 
-    // Enter infinite loop for photography - device stays in perfect display state
-    while(true) {
-        // Keep signal meter LEDs at full brightness (handled by SignalMeter class now)
+	led_strip = new Adafruit_NeoPixel(SignalMeter::LED_COUNT, SIGNAL_METER_PIN, NEO_GRB + NEO_KHZ800);
+	led_strip->begin();
+	led_strip->clear();
+	led_strip->show();
+	
+	// Enter infinite loop for photography - device stays in perfect display state
+	while(true) {
+		for(int i = 0; i < SignalMeter::LED_COUNT; i++){
+			uint32_t color = BRAND_COLORS[i];
+			// uint8_t r = (color >> 16) & 0xFF;
+			// uint8_t g = (color >> 8) & 0xFF;
+			// uint8_t b = color & 0xFF;
+			// led_strip->setPixelColor(i, led_strip->Color(r, g, b));
+			led_strip->setPixelColor(i, color);
+		}
+		led_strip->show();
+
+		// Keep signal meter LEDs at full brightness (handled by SignalMeter class now)
         // Keep both panel LEDs at 4x maximum brightness
         analogWrite(WHITE_PANEL_LED, (PANEL_LOCK_LED_FULL_BRIGHTNESS * 4) / PANEL_LED_BRIGHTNESS_DIVISOR);
         analogWrite(BLUE_PANEL_LED, (PANEL_LOCK_LED_FULL_BRIGHTNESS * 4) / PANEL_LED_BRIGHTNESS_DIVISOR);
@@ -961,7 +1018,9 @@ void purge_events(){
 
 void loop()
 {
-    display.scroll_string(FSTR("FLuXTeLE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
+	Serial.println("LOOP");
+
+	display.scroll_string(FSTR("FLuXTeLE"), DISPLAY_SHOW_TIME, DISPLAY_SCROLL_TIME);
 
 #ifdef ENABLE_BRANDING_MODE
     // BRANDING MODE EASTER EGG - Check if encoder A button is pressed during startup
@@ -972,6 +1031,7 @@ void loop()
 #endif
 
     unsigned long time = millis();
+
     // panel_leds.begin(time, LEDHandler::STYLE_PLAIN | LEDHandler::STYLE_BLANKING, DEFAULT_PANEL_LEDS_SHOW_TIME, DEFAULT_PANEL_LEDS_BLANK_TIME);
 	
 	// ============================================================================
@@ -1446,4 +1506,5 @@ void loop()
 			dispatcher->dispatch_event(&display, ID_ENCODER_TUNING, pressed, long_pressed);
 		}
 	}
+
 }
