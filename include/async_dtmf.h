@@ -1,14 +1,19 @@
 #ifndef __ASYNC_DTMF_H__
 #define __ASYNC_DTMF_H__
 
+#include <Arduino.h>
+
 // AsyncDTMF - DTMF sequence timing manager (similar to AsyncTelco)
 // Handles the timing and state transitions for DTMF digit sequences
 
-// DTMF timing constants
-#define DTMF_TONE_DURATION     150    // 150ms tone duration
-#define DTMF_SILENCE_DURATION  150    // 150ms silence between tones
-#define DTMF_DIGIT_GAP         350    // 350ms gap between digit groups
-#define DTMF_SEQUENCE_GAP      3000   // 3 second gap between sequence repeats
+// DTMF timing constants - Human-like variability for realistic touch-tone dialing
+#define DTMF_TONE_MIN_DURATION     100   // Minimum tone duration (humans hold buttons longer)
+#define DTMF_TONE_MAX_DURATION     400   // Maximum tone duration (natural variation)
+#define DTMF_SILENCE_MIN_DURATION  50   // Minimum silence between tones
+#define DTMF_SILENCE_MAX_DURATION  100   // Maximum silence between tones
+#define DTMF_DIGIT_GAP_MIN         100   // Fast dialing for repeated digits
+#define DTMF_DIGIT_GAP_MAX         100   // Thinking pause for new digit groups
+#define DTMF_SEQUENCE_GAP          3000  // 3 second gap between sequence repeats
 
 // Return values for step_dtmf() method
 #define STEP_DTMF_TURN_ON      1     // Start transmitting DTMF tone
@@ -37,6 +42,11 @@ private:
     unsigned long _next_event_time;
     bool _transmitting;
     bool _active;
+    
+    // Human timing calculation helpers
+    unsigned long calculateToneDuration();      // Variable tone hold time
+    unsigned long calculateSilenceDuration();   // Variable inter-tone silence
+    unsigned long calculateDigitGap(int current_position);  // Context-aware digit gaps based on current position
 
 public:
     AsyncDTMF();

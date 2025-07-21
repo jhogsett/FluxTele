@@ -88,7 +88,10 @@ void StationManager::recycleDormantStations(uint32_t vfo_freq) {
 
 void StationManager::activateStation(int idx, uint32_t freq) {
     if (idx >= 0 && idx < MAX_STATIONS) {
-        stations[idx]->reinitialize(millis(), freq);
+        // USABILITY: Align station frequency to VFO tuning step boundaries for precise tuning
+        uint32_t aligned_freq = (freq / VFO_TUNING_STEP_SIZE) * VFO_TUNING_STEP_SIZE;
+        
+        stations[idx]->reinitialize(millis(), aligned_freq);
         stations[idx]->setActive(true);
         stations[idx]->set_station_state(ACTIVE);
     }
@@ -302,6 +305,32 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
         }
     }
     
+    // USABILITY: Randomly select candidates to avoid selection bias toward earlier stations
+    // Shuffle the candidates array to randomize selection order among stations at similar distances
+    if (candidate_count > 0) {
+        for (int i = candidate_count - 1; i > 0; --i) {
+            int j = random(i + 1);  // Random index from 0 to i
+            if (i != j) {
+                StationDistance temp = candidates[i];
+                candidates[i] = candidates[j];
+                candidates[j] = temp;
+            }
+        }
+    }
+    
+    // Re-sort by distance to maintain furthest-first priority while keeping randomization within distance groups
+    if (candidate_count > 1) {
+        for (int i = 0; i < candidate_count - 1; ++i) {
+            for (int j = i + 1; j < candidate_count; ++j) {
+                if (candidates[i].distance < candidates[j].distance) {
+                    StationDistance temp = candidates[i];
+                    candidates[i] = candidates[j];
+                    candidates[j] = temp;
+                }
+            }
+        }
+    }
+    
     // Reallocate stations starting with the furthest ones
     int stations_moved = 0;
     for (int c = 0; c < candidate_count && stations_moved < MAX_STATIONS - 1; ++c) { // Allow moving almost all stations
@@ -321,6 +350,9 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
         // Ensure we don't go below minimum frequency
         if (new_freq < 100000) new_freq = 100000;
         
+        // USABILITY: Align station frequency to VFO tuning step boundaries for precise tuning
+        new_freq = (new_freq / VFO_TUNING_STEP_SIZE) * VFO_TUNING_STEP_SIZE;
+        
         // Recycle the station - it's safe to interrupt since we checked above
         stations[i]->reinitialize(millis(), new_freq);
         
@@ -333,7 +365,10 @@ void StationManager::reallocateStations(uint32_t vfo_freq) {
         Serial.print("MOVE: S");
         Serial.print(i);
         Serial.print(" to ");
-        Serial.println(new_freq);
+        Serial.print(new_freq);
+        Serial.print(" (aligned to ");
+        Serial.print(VFO_TUNING_STEP_SIZE);
+        Serial.println("Hz steps)");
         #endif
     }
 }

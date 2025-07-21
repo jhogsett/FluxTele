@@ -15,6 +15,7 @@ SimDualTone::SimDualTone(WaveGenPool *wave_gen_pool, float fixed_freq)
     _vfo_freq = 0.0;  // Initialize VFO frequency to prevent garbage values
 
     // Initialize Wave Generators variables
+    _raw_frequency = 0.0;
     _frequency = 0.0;
     _frequency2 = 0.0;
     
@@ -50,12 +51,12 @@ void SimDualTone::common_frequency_update(Mode *mode)
     _vfo_freq = float(vfo->_frequency) + (vfo->_sub_frequency / 10.0);
     
     // Calculate raw frequency difference (used for signal meter - no BFO offset)
-    float raw_frequency = _vfo_freq - _fixed_freq;
+    _raw_frequency = _vfo_freq - _fixed_freq;
 
       // Add BFO offset for comfortable audio tuning
     // This shifts the audio frequency without affecting signal meter calculations
-    _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
-    _frequency2 = raw_frequency + option_bfo_offset + getFrequencyOffsetC();
+    _frequency = _raw_frequency + option_bfo_offset + getFrequencyOffsetA();
+    _frequency2 = _raw_frequency + option_bfo_offset + getFrequencyOffsetC();
 }
 
 bool SimDualTone::check_frequency_bounds()
@@ -200,10 +201,10 @@ void SimDualTone::force_frequency_update()
         return;  // Skip if not enabled or missing realizers
     }
     
-    if(!_active)
-        return;
+    // if(!_active)
+    //     return;
 
-        int realizer_index = 0;  // Track which realizer to use
+    int realizer_index = 0;  // Track which realizer to use
     
     
     float raw_frequency = _vfo_freq - _fixed_freq;
@@ -224,70 +225,6 @@ void SimDualTone::force_frequency_update()
         wavegen_c->set_frequency(_frequency2);
     }
 }
-
-// void SimDualTone::force_frequency_update2()
-// {
-//     // // Immediately recalculate frequencies and update wave generators
-//     // // This is used when _fixed_freq changes outside of the normal update() cycle
-//     // // (e.g., frequency drift, dynamic station reallocation)
-//     // // 
-//     // // Without this, frequency changes would only take effect when the user turns
-//     // // the tuning knob, causing the audio to stay at the old frequency while the
-//     // // signal meter correctly shows the new frequency (confusing behavior).
-//     // //
-//     // // NOTE: This assumes the station currently holds all needed wave generators.
-
-//     Serial.println("ffu2-----------");
-    
-//     // if(!_enabled){
-//     //     Serial.println("ffu2 not enabled");
-//     // }
-
-//     // if(!has_all_realizers()){
-//     //     Serial.println("ffu2 not all realizers");
-//     // }
-
-//     // if(!_active){
-//     //     Serial.println("ffu2 not active");
-//     // }
-    
-//     // if(!_enabled || !has_all_realizers()) {
-//     //     return;  // Skip if not enabled or missing realizers
-//     // }
-    
-//     int realizer_index = 0;  // Track which realizer to use
-    
-//     // if(!_active)
-//     //     return;
-
-//     // Serial.println("ffu-----------");
-    
-//     float raw_frequency = _vfo_freq - _fixed_freq;
-//     _frequency = raw_frequency + option_bfo_offset + getFrequencyOffsetA();
-   
-//     // Serial.println(_frequency);
-    
-//     int realizer_a = get_realizer(realizer_index++);
-//     if(realizer_a != -1) {
-//         WaveGen *wavegen = _wave_gen_pool->access_realizer(realizer_a);
-//         wavegen->set_frequency(_frequency);
-//         Serial.println("this ruins it 1");
-//         Serial.println(_frequency);
-//     }
-    
-//     float raw_frequency2 = _vfo_freq - _fixed_freq;
-//     _frequency2 = raw_frequency2 + option_bfo_offset + getFrequencyOffsetC();
-
-//     // Serial.println(_frequency2);
-    
-//     int realizer_c = get_realizer(realizer_index++);
-//     if(realizer_c != -1) {
-//         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-//         wavegen_c->set_frequency(_frequency2);
-//         Serial.println("this ruins it 2");
-//         Serial.println(_frequency2);
-//     }
-// }
 
 // Centralized charge pulse logic for all simulated stations
 void SimDualTone::send_carrier_charge_pulse(SignalMeter* signal_meter) {

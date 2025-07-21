@@ -10,7 +10,25 @@
 #include "sim_telco.h"
 #include "signal_meter.h"
 
-#define WAIT_SECONDS2 4
+#define TELCO_TYPES_COUNT 4
+#define DEFAULT_CYCLES 4
+
+// Per-TelcoType drift settings for realistic operator behavior
+// Minimum cycles before station moves (base persistence)
+const int DRIFT_MIN_CYCLES[TELCO_TYPES_COUNT] = {
+    4,  // TELCO_RINGBACK - ringback signals are moderately persistent
+    8,  // TELCO_BUSY - busy signals are moderately persistent  
+    12,  // TELCO_REORDER - reorder signals are moderately persistent
+    1   // TELCO_DIALTONE - dial tones are moderately persistent
+};
+
+// Additional random cycles beyond minimum (creates range)
+const int DRIFT_ADDITIONAL_CYCLES[TELCO_TYPES_COUNT] = {
+    4,  // TELCO_RINGBACK - range: 4-8 cycles (same as before)
+    8,  // TELCO_BUSY - range: 4-8 cycles (same as before)
+    12,  // TELCO_REORDER - range: 4-8 cycles (same as before)  
+    1   // TELCO_DIALTONE - range: 4-8 cycles (same as before)
+};
 
 // Telephony frequency offset constants (authentic DTMF frequencies)
 const float SimTelco::RINGBACK_FREQ_A = 440.0f;  // 440 Hz for ringback tone
@@ -24,6 +42,15 @@ const float SimTelco::DIAL_FREQ_C = 440.0f;      // 440 Hz for dial tone
 const float SimTelco::RING_FREQ_A = SimTelco::RINGBACK_FREQ_A;
 const float SimTelco::RING_FREQ_C = SimTelco::RINGBACK_FREQ_C;
 
+// Helper function to calculate drift cycles based on TelcoType
+int calculateDriftCycles(TelcoType type) {
+    int type_index = (int)type;  // Convert enum to array index
+    if (type_index >= 0 && type_index < TELCO_TYPES_COUNT) {
+        return DRIFT_MIN_CYCLES[type_index] + random(DRIFT_ADDITIONAL_CYCLES[type_index]);
+    }
+    return DEFAULT_CYCLES + random(DEFAULT_CYCLES);  // Fallback to original behavior
+}
+
 // mode is expected to be a derivative of VFO
 SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float fixed_freq, TelcoType type)
     : SimDualTone(wave_gen_pool, fixed_freq), _signal_meter(signal_meter), _telco_type(type)
@@ -36,7 +63,7 @@ SimTelco::SimTelco(WaveGenPool *wave_gen_pool, SignalMeter *signal_meter, float 
     
     // Initialize operator frustration drift tracking
     _cycles_completed = 0;
-    _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before frustration (realistic)
+    _cycles_until_qsy = calculateDriftCycles(type);  // Per-type drift cycles (realistic telephony behavior)
 
     // Initialize timing state
     _in_wait_delay = false;
@@ -56,13 +83,13 @@ bool SimTelco::begin(unsigned long time){
     int realizer_a = get_realizer(realizer_index++);
     if(realizer_a != -1) {
         WaveGen *wavegen_a = _wave_gen_pool->access_realizer(realizer_a);
-        wavegen_a->set_frequency(SPACE_FREQUENCY2, false);
+        wavegen_a->set_frequency(SILENT_FREQ, false);
     }
 
     int realizer_c = get_realizer(realizer_index++);
     if(realizer_c != -1) {
         WaveGen *wavegen_c = _wave_gen_pool->access_realizer(realizer_c);
-        wavegen_c->set_frequency(SPACE_FREQUENCY2, false);
+        wavegen_c->set_frequency(SILENT_FREQ, false);
     }
 
     // Set enabled and force frequency update with existing _vfo_freq
@@ -150,16 +177,17 @@ bool SimTelco::step(unsigned long time){
         case STEP_TELCO_TURN_OFF:
             _active = false;
             realize();
+
             // No charge pulse when carrier turns off
             
             // Count completed cycles for frustration logic (when ring cycle ends)
             _cycles_completed++;
             if(_cycles_completed >= _cycles_until_qsy) {
-                // Operator gets frustrated, QSYs to new frequency
-                apply_operator_frustration_drift();
+                // Station cycles to new parameters for dynamic listening experience
+                randomize_station();
                 // Reset frustration counter for next QSY
                 _cycles_completed = 0;
-                _cycles_until_qsy = 30 + (random(30));   // 3-8 cycles before next frustration
+                _cycles_until_qsy = calculateDriftCycles(_telco_type);  // Per-type drift cycles
             }
             break;
             
@@ -195,20 +223,55 @@ void SimTelco::set_retry_state(unsigned long next_try_time) {
     _next_cycle_time = next_try_time;
 }
 
-void SimTelco::apply_operator_frustration_drift()
+void SimTelco::randomize_station()
 {
-    // Move to a new frequency as if a whole new operator is on the air
-    // Realistic amateur radio operator frequency adjustment
-    // ±250 Hz - keep nearby within listening range
-    const float DRIFT_RANGE = 250.0f;
+    // if currently tuned directly to this station don't move it
+    bool skip_frequency_drift = false;
+    if(_raw_frequency == 0.0)
+        skip_frequency_drift = true;
 
-    float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
+    if(!skip_frequency_drift){
+        // Move to a new frequency as if a whole new operator is on the air
+        // Realistic amateur radio operator frequency adjustment
+        // ±250 Hz - keep nearby within listening range
+        const float DRIFT_RANGE = 500.0f;
+        const float VFO_STEP = 100.0f;  // Match VFO_TUNING_STEP_SIZE from StationManager
 
-    // Apply drift to the shared frequency
-    _fixed_freq = _fixed_freq + drift;
+        float drift = ((float)random(0, (long)(2.0f * DRIFT_RANGE * 100))) / 100.0f - DRIFT_RANGE;
 
-    // Immediately update the wave generator frequency
-    force_frequency_update();
+        // Apply drift to the shared frequency
+        float new_freq = _fixed_freq + drift;
+
+        // USABILITY: Align frequency to VFO tuning step boundaries for precise tuning
+        _fixed_freq = ((long)(new_freq / VFO_STEP)) * VFO_STEP;
+    }
+
+    // REALISM: Randomly switch to a different TelcoType (different telephone system)
+    // This simulates different operators or telephone exchanges coming on the air
+    TelcoType new_types[] = {TELCO_RINGBACK, TELCO_BUSY, TELCO_REORDER, TELCO_DIALTONE};
+    _telco_type = new_types[random(4)];  // Randomly pick one of the 4 types
+    
+    // Update frequency offsets for the new telco type
+    setFrequencyOffsetsForType();
+    
+    // Reconfigure AsyncTelco timing for the new type
+    _telco.configure_timing(_telco_type);
+    
+    // Reset frustration counter with new type-specific cycles
+    _cycles_until_qsy = calculateDriftCycles(_telco_type);
+    
+    if(!skip_frequency_drift){
+        // Immediately update the wave generator frequency
+        force_frequency_update();
+    }
+
+    // REALISM: Add 3-5 second delay before operator starts transmitting again
+    // This simulates the time needed for retuning and getting back on the air
+    unsigned long restart_delay = 3000 + random(2000);  // 3-5 seconds
+    set_retry_state(millis() + restart_delay);
+    
+    // Stop current transmission to make the delay effective
+    end();
 }
 
 void SimTelco::randomize()
@@ -219,7 +282,7 @@ void SimTelco::randomize()
     _cycles_completed = 0;
     
     // Set a new random frustration threshold (cycles until QSY)
-    _cycles_until_qsy = random(3, 11);  // 3-10 cycles before getting frustrated
+    _cycles_until_qsy = calculateDriftCycles(_telco_type);  // Per-type drift cycles
     
     // Reset timing state
     _in_wait_delay = false;

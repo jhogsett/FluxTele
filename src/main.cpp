@@ -190,9 +190,8 @@ SignalMeter signal_meter;
 #ifdef CONFIG_SIMDTMF
 
 // TEST: Single SimTelco station for testing duplicate class functionality
-SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 55500000L, TELCO_DIALTONE);
-
-SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 55501000L, TELCO_DIALTONE);
+SimDTMF cw_station2_test1(&wave_gen_pool, &signal_meter, 555123400L);
+SimDTMF cw_station2_test2(&wave_gen_pool, &signal_meter, 867530900L);
 
 SimDualTone *station_pool[2] = {  // Now using SimDualTone base class
     &cw_station2_test1
@@ -236,10 +235,11 @@ SimTelco cw_station2_test4(&wave_gen_pool, &signal_meter,  555250000L, TelcoType
 SimTelco cw_station2_test5(&wave_gen_pool, &signal_meter,  555300000L, TelcoType::TELCO_RINGBACK);
 SimTelco cw_station2_test6(&wave_gen_pool, &signal_meter,  555350000L, TelcoType::TELCO_RINGBACK);
 SimDTMF cw_station2_test7(&wave_gen_pool, &signal_meter,   555400000L);
-SimTelco cw_station2_test8(&wave_gen_pool, &signal_meter,  555450000L, TelcoType::TELCO_BUSY);
-SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555500000L, TelcoType::TELCO_REORDER);
-SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);
-SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
+SimDTMF cw_station2_test8(&wave_gen_pool, &signal_meter,   555500000L);
+SimTelco cw_station2_test9(&wave_gen_pool, &signal_meter,  555450000L, TelcoType::TELCO_BUSY);
+SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_BUSY);
+// SimTelco cw_station2_test10(&wave_gen_pool, &signal_meter,  555550000L, TelcoType::TELCO_REORDER);
+SimDualTone *station_pool[10] = {
     &cw_station2_test1,
     &cw_station2_test2,
     &cw_station2_test3,
@@ -247,9 +247,8 @@ SimDualTone *station_pool[10] = {  // Now using SimDualTone base class
     &cw_station2_test5,
     &cw_station2_test6,
     &cw_station2_test7,
-    &cw_station2_test8
-	,
-    &cw_station2_test9,
+    &cw_station2_test8,
+	&cw_station2_test9,
     &cw_station2_test10
 };
 
@@ -261,8 +260,7 @@ Realization *realizations[10] = {  // Only 1 entry for test config
     &cw_station2_test5,
     &cw_station2_test6,
     &cw_station2_test7,
-    &cw_station2_test8
-	,
+    &cw_station2_test8,
     &cw_station2_test9,
     &cw_station2_test10
 };
@@ -323,9 +321,9 @@ void debug_station_pool_state() {
     Serial.println("=== END STATION DEBUG ===");
 }
 
-VFO vfoa("EXC A", 555123400L, 100, &realization_pool);
-VFO vfob("EXC B", 867530900L, 100, &realization_pool);
-VFO vfoc("EXC C", 123456789L, 100, &realization_pool);
+VFO vfoa("EXC 555", 555123400L, 100, &realization_pool);
+VFO vfob("EXC 867", 867530900L, 100, &realization_pool);
+VFO vfoc("EXC 123", 123456789L, 100, &realization_pool);
 
 Contrast contrast("Contrast");
 BFO bfo("Offset");
